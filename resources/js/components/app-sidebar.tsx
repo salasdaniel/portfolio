@@ -10,7 +10,22 @@ import AppLogo from './app-logo';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: '/panel',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Projects',
+        href: '/projects',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Experiences',
+        href: '/experiences',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Profile',
+        href: '/profile',
         icon: LayoutGrid,
     },
 ];

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { SearchableSelectField } from '@/components/ui/searchable-select-field';
+import { SelectField } from '@/components/ui/select-field';
 import { TagInput } from '@/components/ui/tag-input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem, type Status, type Database } from '@/types';
@@ -35,7 +35,34 @@ interface ProjectType {
     color?: string;
 }
 
+interface Tag {
+    id: number;
+    name: string;
+}
+
+interface Project {
+    id: number;
+    title: string;
+    description: string;
+    programming_languages: ProgrammingLanguage[];
+    frameworks: Framework[];
+    tags: Tag[];
+    project_type: ProjectType | null;
+    environment: Environment | null;
+    status: Status | null;
+    database: Database | null;
+    repo_url: string;
+    live_url: string;
+    image_url: string;
+    is_private: boolean;
+    is_pinned: boolean;
+    pin_order: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
 interface Props {
+    project: Project;
     programmingLanguages: ProgrammingLanguage[];
     frameworks: Framework[];
     environments: Environment[];
@@ -44,58 +71,62 @@ interface Props {
     projectTypes: ProjectType[];
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/panel',
-    },
-    {
-        title: 'Projects',
-        href: '/projects',
-    },
-    {
-        title: 'Create',
-        href: '/projects/create',
-    },
-];
+export default function Edit({ project, programmingLanguages, frameworks, environments, statuses, databases, projectTypes }: Props) {
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/panel',
+        },
+        {
+            title: 'Projects',
+            href: '/projects',
+        },
+        {
+            title: project.title,
+            href: `/projects/${project.id}`,
+        },
+        {
+            title: 'Edit',
+            href: `/projects/${project.id}/edit`,
+        },
+    ];
 
-export default function Create({ programmingLanguages, frameworks, environments, statuses, databases, projectTypes }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
-        title: '',
-        description: '',
-        programming_language_ids: [] as number[],
-        framework_ids: [] as number[],
-        project_type_id: '' as string,
-        environment_id: '' as string,
-        status_id: '' as string,
-        database_id: '' as string,
-        tags: [] as string[],
-        repo_url: '',
-        live_url: '',
-        image_url: '',
-        is_private: false as boolean,
-        is_pinned: false as boolean,
-        pin_order: null as number | null,
+    const { data, setData, put, processing, errors } = useForm({
+        title: project.title || '',
+        description: project.description || '',
+        programming_language_ids: project.programming_languages?.map(pl => pl.id) || [] as number[],
+        framework_ids: project.frameworks?.map(f => f.id) || [] as number[],
+        project_type_id: project.project_type?.id?.toString() || '' as string,
+        environment_id: project.environment?.id?.toString() || '' as string,
+        status_id: project.status?.id?.toString() || '' as string,
+        database_id: project.database?.id?.toString() || '' as string,
+        tags: project.tags?.map(t => t.name) || [] as string[],
+        repo_url: project.repo_url || '',
+        live_url: project.live_url || '',
+        image_url: project.image_url || '',
+        is_private: project.is_private || false as boolean,
+        is_pinned: project.is_pinned || false as boolean,
+        pin_order: project.pin_order || null as number | null,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/projects');
+        put(`/projects/${project.id}`);
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Project" />
+            <Head title={`Edit ${project.title}`} />
             
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/projects">
+                    <Link href={`/projects/${project.id}`}>
                         <Button variant="ghost" size="sm">
                             <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Projects
+                            Back to Project
                         </Button>
                     </Link>
-                    <h1 className="text-2xl font-bold">Create New Project</h1>
+                    <h1 className="text-2xl font-bold">Edit Project</h1>
                 </div>
 
                 <div className="rounded-lg border bg-card p-6">
@@ -119,13 +150,12 @@ export default function Create({ programmingLanguages, frameworks, environments,
                             </div>
 
                             <div className="space-y-2">
-                                <SearchableSelectField
+                                <SelectField
                                     label="Project Type"
                                     options={projectTypes}
                                     value={data.project_type_id}
                                     onValueChange={(value) => setData('project_type_id', value || '')}
                                     placeholder="Select project type..."
-                                    searchPlaceholder="Search project types..."
                                 />
                                 {errors.project_type_id && (
                                     <p className="text-sm text-destructive">{errors.project_type_id}</p>
@@ -133,13 +163,12 @@ export default function Create({ programmingLanguages, frameworks, environments,
                             </div>
 
                             <div className="space-y-2">
-                                <SearchableSelectField
+                                <SelectField
                                     label="Environment"
                                     options={environments}
                                     value={data.environment_id}
                                     onValueChange={(value) => setData('environment_id', value || '')}
                                     placeholder="Select environment..."
-                                    searchPlaceholder="Search environments..."
                                 />
                                 {errors.environment_id && (
                                     <p className="text-sm text-destructive">{errors.environment_id}</p>
@@ -147,13 +176,12 @@ export default function Create({ programmingLanguages, frameworks, environments,
                             </div>
 
                             <div className="space-y-2">
-                                <SearchableSelectField
+                                <SelectField
                                     label="Status"
                                     options={statuses}
                                     value={data.status_id}
                                     onValueChange={(value) => setData('status_id', value || '')}
                                     placeholder="Select status..."
-                                    searchPlaceholder="Search statuses..."
                                 />
                                 {errors.status_id && (
                                     <p className="text-sm text-destructive">{errors.status_id}</p>
@@ -161,13 +189,12 @@ export default function Create({ programmingLanguages, frameworks, environments,
                             </div>
 
                             <div className="space-y-2">
-                                <SearchableSelectField
+                                <SelectField
                                     label="Database"
                                     options={databases}
                                     value={data.database_id}
                                     onValueChange={(value) => setData('database_id', value || '')}
                                     placeholder="Select database..."
-                                    searchPlaceholder="Search databases..."
                                 />
                                 {errors.database_id && (
                                     <p className="text-sm text-destructive">{errors.database_id}</p>
@@ -349,9 +376,9 @@ export default function Create({ programmingLanguages, frameworks, environments,
 
                         <div className="flex gap-4">
                             <Button type="submit" disabled={processing}>
-                                {processing ? 'Creating...' : 'Create Project'}
+                                {processing ? 'Updating...' : 'Update Project'}
                             </Button>
-                            <Link href="/projects">
+                            <Link href={`/projects/${project.id}`}>
                                 <Button type="button" variant="outline">
                                     Cancel
                                 </Button>

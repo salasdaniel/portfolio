@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { Edit, Eye, Lock, Pin, Plus, Trash2 } from 'lucide-react';
 
 interface ProgrammingLanguage {
     id: number;
@@ -30,6 +30,11 @@ interface Environment {
     color?: string;
 }
 
+interface Status {
+    id: number;
+    name: string;
+}
+
 interface Project {
     id: number;
     title: string;
@@ -38,9 +43,13 @@ interface Project {
     frameworks: Framework[];
     tags: Tag[];
     environment: Environment | null;
+    status: Status | null;
     repo_url: string;
     live_url: string;
     image_url: string;
+    is_private: boolean;
+    is_pinned: boolean;
+    pin_order: number | null;
     created_at: string;
     updated_at: string;
 }
@@ -96,7 +105,9 @@ export default function Index({ projects }: Props) {
                                     <th className="p-4 text-left font-medium">Title</th>
                                     <th className="p-4 text-left font-medium">Languages</th>
                                     <th className="p-4 text-left font-medium">Frameworks</th>
-                                    <th className="p-4 text-left font-medium">Tags</th>
+                                    <th className="p-4 text-center font-medium">Private</th>
+                                    <th className="p-4 text-center font-medium">Pinned</th>
+                                    <th className="p-4 text-left font-medium">Status</th>
                                     <th className="p-4 text-left font-medium">Environment</th>
                                     <th className="p-4 text-center font-medium">Actions</th>
                                 </tr>
@@ -104,7 +115,7 @@ export default function Index({ projects }: Props) {
                             <tbody>
                                 {projects.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                                        <td colSpan={8} className="p-8 text-center text-muted-foreground">
                                             No projects found. Create your first project!
                                         </td>
                                     </tr>
@@ -125,8 +136,51 @@ export default function Index({ projects }: Props) {
                                             <td className="p-4 text-sm">
                                                 {project.frameworks?.map(fw => fw.name).join(', ') || '-'}
                                             </td>
-                                            <td className="p-4 text-sm">
-                                                {project.tags?.map(tag => tag.name).join(', ') || '-'}
+                                            <td className="p-4 text-center">
+                                                {project.is_private ? (
+                                                    <div className="flex items-center justify-center">
+                                                        <Lock className="h-4 w-4 text-red-500" />
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {project.is_pinned ? (
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <Pin className="h-4 w-4 text-yellow-500" />
+                                                        {project.pin_order && (
+                                                            <span className="text-sm font-medium">#{project.pin_order}</span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
+                                            </td>
+                                            <td className="p-4">
+                                                {project.status ? (
+                                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                        project.status.name.toLowerCase() === 'completed' || 
+                                                        project.status.name.toLowerCase() === 'completado' ||
+                                                        project.status.name.toLowerCase() === 'finalizado'
+                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                                            : project.status.name.toLowerCase() === 'in progress' ||
+                                                              project.status.name.toLowerCase() === 'en progreso' ||
+                                                              project.status.name.toLowerCase() === 'desarrollo'
+                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                                                            : project.status.name.toLowerCase() === 'paused' ||
+                                                              project.status.name.toLowerCase() === 'pausado'
+                                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                                            : project.status.name.toLowerCase() === 'cancelled' ||
+                                                              project.status.name.toLowerCase() === 'cancelado'
+                                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                                                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                                                    }`}>
+                                                        {project.status.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
                                             </td>
                                             <td className="p-4 text-sm">
                                                 {project.environment?.name || '-'}
