@@ -19,8 +19,18 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'phone',
+        'location',
+        'linkedin_url',
+        'github_url',
+        'born_date',
+        'profession',
+        'description',
+        'profile_image',
+        'theme_color',
     ];
 
     /**
@@ -42,6 +52,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'born_date' => 'date',
             'password' => 'hashed',
         ];
     }
@@ -49,5 +60,32 @@ class User extends Authenticatable
     public function projects()
     {
         return $this->hasMany(Project::class);
+    }
+
+    // Skills relationships
+    public function programmingLanguageSkills()
+    {
+        return $this->belongsToMany(ProgrammingLanguage::class, 'user_programming_languages')
+            ->withPivot(['experience_level'])
+            ->withTimestamps();
+    }
+
+    public function frameworkSkills()
+    {
+        return $this->belongsToMany(Framework::class, 'user_frameworks')
+            ->withPivot(['experience_level'])
+            ->withTimestamps();
+    }
+
+    public function databaseSkills()
+    {
+        return $this->belongsToMany(Database::class, 'user_databases')
+            ->withPivot(['experience_level'])
+            ->withTimestamps();
+    }
+
+    public function otherTechnologies()
+    {
+        return $this->hasMany(UserOtherTechnology::class);
     }
 }

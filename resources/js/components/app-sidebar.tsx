@@ -25,7 +25,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Profile',
-        href: '/profile',
+        href: '/settings/profile',
         icon: LayoutGrid,
     },
 ];
