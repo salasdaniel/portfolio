@@ -1,0 +1,281 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class ExperienceController extends Controller
+{
+    /**
+     * Display the user's experience page.
+     */
+    public function index(Request $request): Response
+    {
+        $user = $request->user()->load(['education', 'experience', 'skills']);
+        
+        return Inertia::render('Experiences/Index', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Update the user's experience data.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        // Handle CV upload
+        if ($request->hasFile('cv_file')) {
+            // Delete old CV if exists
+            if ($user->cv_file) {
+                Storage::disk('public')->delete($user->cv_file);
+            }
+            
+            $path = $request->file('cv_file')->store('cv-files', 'public');
+            $user->cv_file = $path;
+            $user->save();
+        }
+
+        // Handle education and experience from JSON strings
+        if ($request->has('education')) {
+            $educationData = json_decode($request->input('education'), true);
+            if ($educationData) {
+                $this->updateEducation($user, $educationData);
+            }
+        }
+        
+        if ($request->has('experience')) {
+            $experienceData = json_decode($request->input('experience'), true);
+            if ($experienceData) {
+                $this->updateExperience($user, $experienceData);
+            }
+        }
+
+        if ($request->has('skills')) {
+            $skillsData = json_decode($request->input('skills'), true);
+            if ($skillsData) {
+                $this->updateSkills($user, $skillsData);
+            }
+        }
+
+        return redirect()->route('experiences.index')->with('message', 'Experience data updated successfully!');
+    }
+
+    /**
+     * Store or update a single education record.
+     */
+    public function storeEducation(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'id' => ['nullable', 'integer'],
+            'institution' => ['required', 'string', 'max:255'],
+            'degree' => ['required', 'string', 'max:255'],
+            'field_of_study' => ['nullable', 'string', 'max:255'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'is_current' => ['nullable'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'sort_order' => ['nullable', 'integer'],
+        ]);
+
+        // Handle boolean value properly
+        $validated['is_current'] = filter_var($validated['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        
+        // Clean end_date if is_current is true
+        if ($validated['is_current']) {
+            $validated['end_date'] = null;
+        }
+
+        if (isset($validated['id']) && $validated['id']) {
+            // Update existing record
+            $education = $user->education()->findOrFail($validated['id']);
+            $education->update($validated);
+        } else {
+            // Create new record
+            unset($validated['id']);
+            $validated['sort_order'] = $validated['sort_order'] ?? $user->education()->count();
+            $education = $user->education()->create($validated);
+        }
+
+        return response()->json([
+            'message' => 'Education record saved successfully!',
+            'education' => $education
+        ]);
+    }
+
+    /**
+     * Store or update a single work experience record.
+     */
+    public function storeWork(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'id' => ['nullable', 'integer'],
+            'position' => ['required', 'string', 'max:255'],
+            'company' => ['required', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'is_current' => ['nullable'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'sort_order' => ['nullable', 'integer'],
+        ]);
+
+        // Handle boolean value properly
+        $validated['is_current'] = filter_var($validated['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        
+        // Clean end_date if is_current is true
+        if ($validated['is_current']) {
+            $validated['end_date'] = null;
+        }
+
+        if (isset($validated['id']) && $validated['id']) {
+            // Update existing record
+            $experience = $user->experience()->findOrFail($validated['id']);
+            $experience->update($validated);
+        } else {
+            // Create new record
+            unset($validated['id']);
+            $validated['sort_order'] = $validated['sort_order'] ?? $user->experience()->count();
+            $experience = $user->experience()->create($validated);
+        }
+
+        return response()->json([
+            'message' => 'Work experience record saved successfully!',
+            'experience' => $experience
+        ]);
+    }
+
+    /**
+     * Store or update a single skill record.
+     */
+    public function storeSkill(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'id' => ['nullable', 'integer'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'icon' => ['nullable', 'string'],
+            'sort_order' => ['nullable', 'integer'],
+        ]);
+
+        if (isset($validated['id']) && $validated['id']) {
+            // Update existing record
+            $skill = $user->skills()->findOrFail($validated['id']);
+            $skill->update($validated);
+        } else {
+            // Create new record
+            unset($validated['id']);
+            $validated['sort_order'] = $validated['sort_order'] ?? $user->skills()->count();
+            $skill = $user->skills()->create($validated);
+        }
+
+        return response()->json([
+            'message' => 'Skill record saved successfully!',
+            'skill' => $skill
+        ]);
+    }
+    
+    private function updateEducation($user, $educationData)
+    {
+        // Delete existing education records for this user
+        $user->education()->delete();
+        
+        // Create new education records
+        foreach ($educationData as $index => $education) {
+            $user->education()->create([
+                'institution' => $education['institution'],
+                'degree' => $education['degree'],
+                'field_of_study' => $education['field_of_study'] ?? null,
+                'start_date' => $education['start_date'],
+                'end_date' => $education['end_date'] ?? null,
+                'is_current' => filter_var($education['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'description' => $education['description'] ?? null,
+                'sort_order' => $index,
+            ]);
+        }
+    }
+    
+    private function updateExperience($user, $experienceData)
+    {
+        // Delete existing experience records for this user
+        $user->experience()->delete();
+        
+        // Create new experience records
+        foreach ($experienceData as $index => $experience) {
+            $user->experience()->create([
+                'position' => $experience['position'],
+                'company' => $experience['company'],
+                'location' => $experience['location'] ?? null,
+                'start_date' => $experience['start_date'],
+                'end_date' => $experience['end_date'] ?? null,
+                'is_current' => filter_var($experience['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                'description' => $experience['description'] ?? null,
+                'sort_order' => $index,
+            ]);
+        }
+    }
+
+    private function updateSkills($user, $skillsData)
+    {
+        // Delete existing skills records for this user
+        $user->skills()->delete();
+        
+        // Create new skills records
+        foreach ($skillsData as $index => $skill) {
+            $user->skills()->create([
+                'title' => $skill['title'],
+                'description' => $skill['description'] ?? null,
+                'icon' => $skill['icon'] ?? null,
+                'sort_order' => $index,
+            ]);
+        }
+    }
+
+    public function destroyEducation(Request $request, $id)
+    {
+        try {
+            $education = $request->user()->education()->findOrFail($id);
+            $education->delete();
+            
+            return response()->json(['message' => 'Education record deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting education record'], 500);
+        }
+    }
+
+    public function destroyExperience(Request $request, $id)
+    {
+        try {
+            $experience = $request->user()->experience()->findOrFail($id);
+            $experience->delete();
+            
+            return response()->json(['message' => 'Experience record deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting experience record'], 500);
+        }
+    }
+
+    public function destroySkill(Request $request, $id)
+    {
+        try {
+            $skill = $request->user()->skills()->findOrFail($id);
+            $skill->delete();
+            
+            return response()->json(['message' => 'Skill record deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error deleting skill record'], 500);
+        }
+    }
+}

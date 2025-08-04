@@ -30,6 +30,7 @@ class User extends Authenticatable
         'profession',
         'description',
         'profile_image',
+        'cv_file',
         'theme_color',
     ];
 
@@ -87,5 +88,20 @@ class User extends Authenticatable
     public function otherTechnologies()
     {
         return $this->hasMany(UserOtherTechnology::class);
+    }
+
+    public function education()
+    {
+        return $this->hasMany(UserEducation::class)->orderBy('sort_order')->orderBy('start_date', 'desc');
+    }
+
+    public function experience()
+    {
+        return $this->hasMany(UserExperience::class)->orderBy('sort_order')->orderBy('start_date', 'desc');
+    }
+
+    public function skills()
+    {
+        return $this->hasMany(UserSkill::class)->orderBy('sort_order');
     }
 }

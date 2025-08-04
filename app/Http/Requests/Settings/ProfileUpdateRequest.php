@@ -43,7 +43,6 @@ class ProfileUpdateRequest extends FormRequest
             'theme_color' => ['required', 'string', 'max:7', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             
-            // Skills
             // Skills validation
             'programming_language_ids' => ['nullable', 'array'],
             'programming_language_ids.*' => ['exists:programming_languages,id'],
@@ -52,7 +51,7 @@ class ProfileUpdateRequest extends FormRequest
             'framework_ids.*' => ['exists:frameworks,id'],
             
             'database_ids' => ['nullable', 'array'],
-                        'database_ids.*' => ['exists:databases,id'],
+            'database_ids.*' => ['exists:databases,id'],
             
             // Other technologies validation
             'other_technologies' => ['nullable', 'array'],

@@ -29,7 +29,9 @@ class ProfileController extends Controller
                 'programmingLanguageSkills',
                 'frameworkSkills',
                 'databaseSkills', 
-                'otherTechnologies'
+                'otherTechnologies',
+                'education',
+                'experience'
             ])->makeVisible(['email_verified_at']),
             'programmingLanguages' => ProgrammingLanguage::where('is_active', true)
                 ->orderBy('name')
