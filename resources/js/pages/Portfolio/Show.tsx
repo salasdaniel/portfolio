@@ -39,28 +39,28 @@ interface User {
         description?: string;
         icon?: string;
     }>;
-    programmingLanguageSkills?: Array<{
+    programming_language_skills?: Array<{
         id?: number;
         name?: string;
         pivot?: {
             experience_level?: string;
         };
     }>;
-    databaseSkills?: Array<{
+    database_skills?: Array<{
         id?: number;
         name?: string;
         pivot?: {
             experience_level?: string;
         };
     }>;
-    frameworkSkills?: Array<{
+    framework_skills?: Array<{
         id?: number;
         name?: string;
         pivot?: {
             experience_level?: string;
         };
     }>;
-    otherTechnologies?: Array<{
+    other_technologies?: Array<{
         name?: string;
         level?: string;
     }>;
@@ -74,13 +74,37 @@ interface Props {
 export default function Show({ user }: Props) {
     // Debug logs to see what data is being received
     console.log('User data:', user);
-    console.log('Programming Languages:', user.programmingLanguageSkills);
-    console.log('Database Skills:', user.databaseSkills);
-    console.log('Framework Skills:', user.frameworkSkills);
+    console.log('Programming Languages:', user.programming_language_skills);
+    console.log('Database Skills:', user.database_skills);
+    console.log('Framework Skills:', user.framework_skills);
     console.log('User Skills:', user.skills);
+    
+    // Crear estilos dinámicos para el carrusel
+    const totalItems = (user.programming_language_skills?.length || 0) + 
+                      (user.framework_skills?.length || 0) + 
+                      (user.database_skills?.length || 0);
     
     return (
         <div style={{ backgroundColor: '#121212', minHeight: '100vh' }}>
+            {/* Estilos para animación del carrusel */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes scroll {
+                    0% {
+                        transform: translateX(0);
+                    }
+                    100% {
+                        transform: translateX(calc(-120px * ${totalItems}));
+                    }
+                }
+                .animate-scroll {
+                    animation: scroll 30s linear infinite;
+                }
+                .animate-scroll:hover {
+                    animation-play-state: paused;
+                }
+                `
+            }} />
             <div className="flex">
                 {/* Left Sidebar - Profile Information */}
                 <div className="fixed top-0 left-0 w-80 h-screen p-8 flex flex-col items-center justify-center text-center" 
@@ -129,7 +153,7 @@ export default function Show({ user }: Props) {
                     {/* Profession Badge */}
                     {user.profession && (
                         <div className="my-4">
-                            <span className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer" 
+                            <span className="px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer" 
                                   style={{ 
                                       backgroundColor: '#1db954ff', 
                                       color: '#121212',
@@ -265,7 +289,7 @@ export default function Show({ user }: Props) {
                     {/* About Me Section */}
                     <div className="mb-12 relative z-10">
                         <h2 className="text-3xl font-bold mb-6 transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                            About Me
+                            About Mesidro
                         </h2>
                         <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
                             <div className="absolute inset-0" style={{ backgroundColor: '#f39c12' }}></div>
@@ -346,74 +370,137 @@ export default function Show({ user }: Props) {
                         </div>
                     </div>
 
-                    {/* Skills Section */}
-                    {(user.programmingLanguageSkills?.length || user.frameworkSkills?.length || user.databaseSkills?.length || user.otherTechnologies?.length) && (
+                    {/* Stack Section */}
+                    {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
                         <div className="mb-12">
                             <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                                Skills
+                                Stack
                             </h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {/* Programming Languages */}
-                                {user.programmingLanguageSkills?.map((skill, index) => (
-                                    <div key={`prog-${index}`} className="w-20 h-20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c', border: '1px solid #f39c12' }}>
-                                        <span className="text-xs font-medium text-center" style={{ color: '#ffffff' }}>
-                                            {skill.name || 'N/A'}
+                            <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            </div>
+
+                            {/* Technologies Carousel Container */}
+                            <div className="relative overflow-hidden rounded-2xl p-8 flex justify-center" >
+                                <div className="flex gap-6 animate-scroll">
+                                    {/* Programming Languages */}
+                                    {user.programming_language_skills?.map((skill, index) => (
+                                        <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                                
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                            
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Frameworks */}
+                                    {user.framework_skills?.map((skill, index) => (
+                                        <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                                
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                            
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Databases */}
+                                    {user.database_skills?.map((skill, index) => (
+                                        <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                              
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                          
+                                        </div>
+                                    ))}
+
+                                    {/* Duplicate items for infinite scroll effect */}
+                                    {user.programming_language_skills?.map((skill, index) => (
+                                        <div key={`prog-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                                
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                            
+                                        </div>
+                                    ))}
+                                    
+                                    {user.framework_skills?.map((skill, index) => (
+                                        <div key={`framework-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                              
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                           
+                                        </div>
+                                    ))}
+                                    
+                                    {user.database_skills?.map((skill, index) => (
+                                        <div key={`db-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                             style={{ 
+                                                 backgroundColor: '#1a1a1a', 
+                                                
+                                             }}>
+                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
+                                                {skill.name}
+                                            </span>
+                                           
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Other Technologies Section */}
+                    {user.other_technologies?.length && (
+                        <div className="mb-12">
+                            <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                Other Technologies
+                            </h2>
+                            <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            </div>
+
+                            {/* Technologies Tags */}
+                            <div className="flex flex-wrap gap-3">
+                                {user.other_technologies.map((tech, index) => (
+                                    <div key={index} className="px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group" 
+                                         style={{ 
+                                             backgroundColor: '#2c2c2c', 
+                                           
+                                             
+                                         }}>
+                                        <span className="text-sm font-medium" style={{ color: '#cccccc' }}>
+                                            {tech.name}
                                         </span>
-                                    </div>
-                                ))}
-                                
-                                {/* Frameworks */}
-                                {user.frameworkSkills?.map((skill, index) => (
-                                    <div key={`framework-${index}`} className="w-20 h-20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c', border: '1px solid #f39c12' }}>
-                                        <span className="text-xs font-medium text-center" style={{ color: '#ffffff' }}>
-                                            {skill.name || 'N/A'}
-                                        </span>
-                                    </div>
-                                ))}
-                                
-                                {/* Databases */}
-                                {user.databaseSkills?.map((skill, index) => (
-                                    <div key={`db-${index}`} className="w-20 h-20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c', border: '1px solid #f39c12' }}>
-                                        <span className="text-xs font-medium text-center" style={{ color: '#ffffff' }}>
-                                            {skill.name || 'N/A'}
-                                        </span>
-                                    </div>
-                                ))}
-                                
-                                {/* Other Technologies */}
-                                {user.otherTechnologies?.map((skill, index) => (
-                                    <div key={`other-${index}`} className="w-20 h-20 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c', border: '1px solid #f39c12' }}>
-                                        <span className="text-xs font-medium text-center" style={{ color: '#ffffff' }}>
-                                            {skill.name || 'N/A'}
-                                        </span>
+                                        {tech.level && (
+                                            <span className="text-xs ml-2 opacity-70" style={{ color: '#cccccc' }}>
+                                                {tech.level}
+                                            </span>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-
-                    {/* Back to Search */}
-                    <div className="text-center mt-16">
-                        <a 
-                            href={route('home')}
-                            className="inline-flex items-center px-8 py-4 rounded-xl font-medium transition-all duration-200"
-                            style={{ 
-                                border: '1px solid #f39c12',
-                                color: '#f39c12',
-                                backgroundColor: 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#f39c12';
-                                e.currentTarget.style.color = '#121212';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.color = '#f39c12';
-                            }}
-                        >
-                            ← Back to Search
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
