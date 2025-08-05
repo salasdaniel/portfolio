@@ -6,8 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\ProgrammingLanguage;
+use App\Models\Database;
+use App\Models\Framework;
 
 class ExperienceController extends Controller
 {
@@ -16,10 +20,21 @@ class ExperienceController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user()->load(['education', 'experience', 'skills']);
+        $user = $request->user()->load([
+            'education', 
+            'experience', 
+            'skills',
+            'programmingLanguageSkills',
+            'databaseSkills',
+            'frameworkSkills',
+            'otherTechnologies'
+        ]);
         
         return Inertia::render('Experiences/Index', [
             'user' => $user,
+            'programmingLanguages' => ProgrammingLanguage::orderBy('name')->get(),
+            'databases' => Database::orderBy('name')->get(),
+            'frameworks' => Framework::orderBy('name')->get(),
         ]);
     }
 
@@ -276,6 +291,121 @@ class ExperienceController extends Controller
             return response()->json(['message' => 'Skill record deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error deleting skill record'], 500);
+        }
+    }
+
+    /**
+     * Store or update user technologies.
+     */
+    public function storeTechnologies(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        // Parse JSON strings from FormData
+        $programmingLanguages = $request->has('programming_languages') ? json_decode($request->input('programming_languages'), true) : [];
+        $databases = $request->has('databases') ? json_decode($request->input('databases'), true) : [];
+        $frameworks = $request->has('frameworks') ? json_decode($request->input('frameworks'), true) : [];
+        $otherTechnologies = $request->has('other_technologies') ? json_decode($request->input('other_technologies'), true) : [];
+        
+        // Log the parsed data for debugging
+        Log::info('Parsed technologies data:', [
+            'programming_languages' => $programmingLanguages,
+            'databases' => $databases,
+            'frameworks' => $frameworks,
+            'other_technologies' => $otherTechnologies
+        ]);
+        
+        // Merge parsed data back into the request for validation
+        $request->merge([
+            'programming_languages' => $programmingLanguages,
+            'databases' => $databases,
+            'frameworks' => $frameworks,
+            'other_technologies' => $otherTechnologies
+        ]);
+        
+        // Now validate the merged data
+        $validated = $request->validate([
+            'programming_languages' => ['nullable', 'array'],
+            'programming_languages.*' => ['integer', 'exists:programming_languages,id'],
+            'databases' => ['nullable', 'array'],
+            'databases.*' => ['integer', 'exists:databases,id'],
+            'frameworks' => ['nullable', 'array'],
+            'frameworks.*' => ['integer', 'exists:frameworks,id'],
+            'other_technologies' => ['nullable', 'array'],
+            'other_technologies.*' => ['string', 'max:100'],
+        ]);
+
+        Log::info('Validated data:', $validated);
+
+        try {
+            // Sync programming languages
+            if (isset($validated['programming_languages'])) {
+                $user->programmingLanguageSkills()->sync($validated['programming_languages']);
+            }
+
+            // Sync databases
+            if (isset($validated['databases'])) {
+                $user->databaseSkills()->sync($validated['databases']);
+            }
+
+            // Sync frameworks
+            if (isset($validated['frameworks'])) {
+                $user->frameworkSkills()->sync($validated['frameworks']);
+            }
+
+            // Handle other technologies
+            if (isset($validated['other_technologies'])) {
+                // Delete existing other technologies
+                $user->otherTechnologies()->delete();
+                
+                // Create new ones
+                foreach ($validated['other_technologies'] as $index => $technology) {
+                    $user->otherTechnologies()->create([
+                        'name' => $technology,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+
+            $userWithTech = $user->load(['programmingLanguageSkills', 'databaseSkills', 'frameworkSkills', 'otherTechnologies']);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Technologies saved successfully!',
+                'programming_languages' => $userWithTech->programmingLanguageSkills,
+                'databases' => $userWithTech->databaseSkills,
+                'frameworks' => $userWithTech->frameworkSkills,
+                'other_technologies' => $userWithTech->otherTechnologies
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error saving technologies: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json(['success' => false, 'message' => 'Error saving technologies: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Store or update user professional information.
+     */
+    public function storeProfessionalInfo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $validated = $request->validate([
+            'profession' => ['nullable', 'string', 'max:255'],
+            'linkedin_url' => ['nullable', 'url', 'max:255'],
+            'github_url' => ['nullable', 'url', 'max:255'],
+        ]);
+
+        try {
+            $user->update($validated);
+
+            return response()->json([
+                'message' => 'Professional information saved successfully!',
+                'user' => $user
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error saving professional information: ' . $e->getMessage()], 500);
         }
     }
 }

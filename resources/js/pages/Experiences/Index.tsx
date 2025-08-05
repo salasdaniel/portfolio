@@ -1,16 +1,28 @@
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
+import { route } from 'ziggy-js';
 
 import HeadingSmall from '@/components/heading-small';
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { TagInput } from '@/components/ui/tag-input';
+import { 
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import AppLayout from '@/layouts/app-layout';
-import { Upload, Plus, Trash2, FileText, Save, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Save, Edit2, Upload } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -55,53 +67,135 @@ interface UserSkill {
     sort_order: number;
 }
 
+interface ProgrammingLanguage {
+    id: number;
+    name: string;
+}
+
+interface Database {
+    id: number;
+    name: string;
+}
+
+interface Framework {
+    id: number;
+    name: string;
+}
+
 interface User {
     id: number;
     name: string;
+    profession?: string;
+    linkedin_url?: string;
+    github_url?: string;
     cv_file?: string;
     education?: UserEducation[];
     experience?: UserExperience[];
     skills?: UserSkill[];
+    programming_language_skills?: Array<{
+        id: number;
+        name: string;
+        pivot: {
+            description?: string;
+            experience_level: string;
+        };
+    }>;
+    database_skills?: Array<{
+        id: number;
+        name: string;
+        pivot: {
+            description?: string;
+            experience_level: string;
+        };
+    }>;
+    framework_skills?: Array<{
+        id: number;
+        name: string;
+        pivot: {
+            description?: string;
+            experience_level: string;
+        };
+    }>;
+    other_technologies?: Array<{
+        id: number;
+        name: string;
+        description?: string;
+        experience_level?: number;
+        category?: string;
+        sort_order?: number;
+    }>;
 }
 
 interface Props {
     user: User;
+    programmingLanguages?: ProgrammingLanguage[];
+    databases?: Database[];
+    frameworks?: Framework[];
 }
 
-export default function Index({ user }: Props) {
-    const [cvFileName, setCvFileName] = useState<string | null>(
-        user.cv_file ? user.cv_file.split('/').pop() || null : null
-    );
-
+export default function Index({ user, programmingLanguages = [], databases = [], frameworks = [] }: Props) {
     const [educationList, setEducationList] = useState<UserEducation[]>([]);
     const [experienceList, setExperienceList] = useState<UserExperience[]>([]);
     const [skillsList, setSkillsList] = useState<UserSkill[]>([]);
     const [savedEducations, setSavedEducations] = useState<UserEducation[]>(user.education || []);
     const [savedExperiences, setSavedExperiences] = useState<UserExperience[]>(user.experience || []);
     const [savedSkills, setSavedSkills] = useState<UserSkill[]>(user.skills || []);
-    const [cvFile, setCvFile] = useState<File | null>(null);
     const [savingEducation, setSavingEducation] = useState<number | null>(null);
     const [savingExperience, setSavingExperience] = useState<number | null>(null);
     const [savingSkill, setSavingSkill] = useState<number | null>(null);
 
-    const [processing, setProcessing] = useState(false);
+    // Estados para tecnologías
+    const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState<number[]>(
+        user.programming_language_skills?.map(skill => skill.id) || []
+    );
+    const [selectedDatabases, setSelectedDatabases] = useState<number[]>(
+        user.database_skills?.map(skill => skill.id) || []
+    );
+    const [selectedFrameworks, setSelectedFrameworks] = useState<number[]>(
+        user.framework_skills?.map(skill => skill.id) || []
+    );
+    const [otherTechnologies, setOtherTechnologies] = useState<string[]>(
+        user.other_technologies?.map(tech => tech.name) || []
+    );
+    const [savingTechnologies, setSavingTechnologies] = useState(false);
+
+    // Estados para campos profesionales
+    const [profession, setProfession] = useState(user.profession || '');
+    const [linkedinUrl, setLinkedinUrl] = useState(user.linkedin_url || '');
+    const [githubUrl, setGithubUrl] = useState(user.github_url || '');
+    const [savingProfessionalInfo, setSavingProfessionalInfo] = useState(false);
 
     // Estados para mensajes
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
+    
+    // Estados para procesamiento y archivos
+    const [processing, setProcessing] = useState(false);
+    
+    // Confirmation dialog states
+    const [deleteEducationId, setDeleteEducationId] = useState<number | null>(null);
+    const [deleteExperienceId, setDeleteExperienceId] = useState<number | null>(null);
+    const [deleteSkillId, setDeleteSkillId] = useState<number | null>(null);
+    const [cvFile, setCvFile] = useState<File | null>(null);
+    const [cvFileName, setCvFileName] = useState<string | null>(
+        user.cv_file ? user.cv_file.split('/').pop() || null : null
+    );
 
-    // Helper function to format dates
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '';
-        return dateString.split('T')[0]; // Get only YYYY-MM-DD part
-    };
-
+    // CV File handler
     const handleCvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
             setCvFile(file);
             setCvFileName(file.name);
         }
+        // Reset the input value to allow selecting the same file again
+        e.target.value = '';
+    };
+
+    // Helper function to format dates
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '';
+        return dateString.split('T')[0]; // Get only YYYY-MM-DD part
     };
 
     const addEducation = () => {
@@ -305,7 +399,8 @@ export default function Index({ user }: Props) {
         .catch(error => {
             console.error('Error saving education:', error);
             setSavingEducation(null);
-            alert('Error saving education record. Please try again.');
+            setError('Error al guardar el registro de educación. Por favor intenta de nuevo.');
+            setTimeout(() => setError(''), 5000);
         });
     };
 
@@ -354,7 +449,8 @@ export default function Index({ user }: Props) {
         .catch(error => {
             console.error('Error saving experience:', error);
             setSavingExperience(null);
-            alert('Error saving experience record. Please try again.');
+            setError('Error al guardar el registro de experiencia. Por favor intenta de nuevo.');
+            setTimeout(() => setError(''), 5000);
         });
     };
 
@@ -369,15 +465,30 @@ export default function Index({ user }: Props) {
         if (skill.icon) formData.append('icon', skill.icon);
         formData.append('sort_order', skill.sort_order.toString());
 
+        // Get fresh CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            setSavingSkill(null);
+            setError('Error: Token CSRF no encontrado. Por favor recarga la página.');
+            setTimeout(() => setError(''), 5000);
+            return;
+        }
+
         fetch('/experiences/skill', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
             },
         })
         .then(response => {
             if (!response.ok) {
+                if (response.status === 419) {
+                    throw new Error('CSRF token mismatch. Please refresh the page and try again.');
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
@@ -399,7 +510,12 @@ export default function Index({ user }: Props) {
         .catch(error => {
             console.error('Error saving skill:', error);
             setSavingSkill(null);
-            alert('Error saving skill record. Please try again.');
+            if (error.message.includes('CSRF')) {
+                setError(error.message);
+            } else {
+                setError('Error al guardar el registro de habilidad. Por favor intenta de nuevo.');
+            }
+            setTimeout(() => setError(''), 5000);
         });
     };
 
@@ -436,39 +552,7 @@ export default function Index({ user }: Props) {
         });
     };
 
-    const saveCvFile = () => {
-        if (!cvFile) return;
-
-        setProcessing(true);
-        const formData = new FormData();
-        formData.append('cv_file', cvFile);
-
-        fetch('/experiences', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            },
-        })
-        .then(() => {
-            setProcessing(false);
-            setCvFile(null);
-            setSuccess('CV guardado exitosamente');
-            setTimeout(() => setSuccess(''), 3000);
-            window.location.reload();
-        })
-        .catch(() => {
-            setProcessing(false);
-            setError('Error al guardar el CV');
-            setTimeout(() => setError(''), 3000);
-        });
-    };
-
     const deleteEducation = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este registro de educación?')) {
-            return;
-        }
-
         try {
             const response = await fetch(route('education.destroy', id), {
                 method: 'DELETE',
@@ -483,18 +567,18 @@ export default function Index({ user }: Props) {
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 setError('Error al eliminar la educación');
+                setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting education:', error);
             setError('Error al eliminar la educación');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setDeleteEducationId(null);
         }
     };
 
     const deleteExperience = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este registro de experiencia laboral?')) {
-            return;
-        }
-
         try {
             const response = await fetch(route('experience.destroy', id), {
                 method: 'DELETE',
@@ -509,18 +593,18 @@ export default function Index({ user }: Props) {
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 setError('Error al eliminar la experiencia');
+                setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting experience:', error);
             setError('Error al eliminar la experiencia');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setDeleteExperienceId(null);
         }
     };
 
     const deleteSkill = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de que quieres eliminar esta habilidad?')) {
-            return;
-        }
-
         try {
             const response = await fetch(route('skill.destroy', id), {
                 method: 'DELETE',
@@ -535,10 +619,115 @@ export default function Index({ user }: Props) {
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 setError('Error al eliminar la habilidad');
+                setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting skill:', error);
             setError('Error al eliminar la habilidad');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setDeleteSkillId(null);
+        }
+    };
+
+    const saveTechnologies = async () => {
+        setSavingTechnologies(true);
+        
+        const formData = new FormData();
+        
+        // Convert arrays to JSON strings for Laravel to parse
+        formData.append('programming_languages', JSON.stringify(selectedProgrammingLanguages));
+        formData.append('databases', JSON.stringify(selectedDatabases));
+        formData.append('frameworks', JSON.stringify(selectedFrameworks));
+        formData.append('other_technologies', JSON.stringify(otherTechnologies));
+
+        try {
+            const response = await fetch('/experiences/technologies', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json',
+                },
+            });
+
+            const responseText = await response.text();
+            console.log('Raw response:', responseText);
+
+            if (response.ok) {
+                try {
+                    const data = JSON.parse(responseText);
+                    console.log('Parsed data:', data);
+                    
+                    // Update states with saved data
+                    if (data.programming_languages) {
+                        setSelectedProgrammingLanguages(data.programming_languages.map((lang: { id: number }) => lang.id));
+                    }
+                    if (data.databases) {
+                        setSelectedDatabases(data.databases.map((db: { id: number }) => db.id));
+                    }
+                    if (data.frameworks) {
+                        setSelectedFrameworks(data.frameworks.map((fw: { id: number }) => fw.id));
+                    }
+                    if (data.other_technologies) {
+                        setOtherTechnologies(data.other_technologies.map((tech: { name: string }) => tech.name));
+                    }
+                    
+                    setSuccess('Tecnologías guardadas exitosamente');
+                    setTimeout(() => setSuccess(''), 3000);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    setError(`Error al procesar respuesta del servidor`);
+                    setTimeout(() => setError(''), 5000);
+                }
+            } else {
+                console.error('Server response:', responseText);
+                setError(`Error al guardar las tecnologías: ${response.status}`);
+                setTimeout(() => setError(''), 5000);
+            }
+        } catch (error) {
+            console.error('Error saving technologies:', error);
+            setError('Error de conexión al guardar las tecnologías');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setSavingTechnologies(false);
+        }
+    };
+
+    const saveProfessionalInfo = async () => {
+        setSavingProfessionalInfo(true);
+        
+        const formData = new FormData();
+        formData.append('profession', profession);
+        formData.append('linkedin_url', linkedinUrl);
+        formData.append('github_url', githubUrl);
+        
+        if (cvFile) {
+            formData.append('cv_file', cvFile);
+        }
+
+        try {
+            const response = await fetch('/experiences/professional-info', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+            });
+
+            if (response.ok) {
+                setSuccess('Información profesional guardada exitosamente');
+                setTimeout(() => setSuccess(''), 3000);
+                // Reset CV file state after successful save
+                setCvFile(null);
+            } else {
+                setError('Error al guardar la información profesional');
+            }
+        } catch (error) {
+            console.error('Error saving professional info:', error);
+            setError('Error al guardar la información profesional');
+        } finally {
+            setSavingProfessionalInfo(false);
         }
     };
 
@@ -564,116 +753,204 @@ export default function Index({ user }: Props) {
                 )}
 
                 <div className="space-y-8">
+                    {/* Technologies Section */}
                     <div className="rounded-lg border bg-card p-6">
-                        <form onSubmit={submit} className="space-y-8">
+                        <div className="space-y-6">
+                            <HeadingSmall title="Technologies & Skills" />
                             
-                            {/* CV Upload Section */}
-                            <div className="space-y-6">
-                                <HeadingSmall title="CV/Resume" />
-                                
-                                <div className="space-y-4">
+                            {/* Programming Languages */}
+                            <div className="space-y-2">
+                                <MultiSelect
+                                    label="Programming Languages"
+                                    options={programmingLanguages}
+                                    value={selectedProgrammingLanguages}
+                                    onChange={setSelectedProgrammingLanguages}
+                                    placeholder="Select programming languages"
+                                />
+                            </div>
+
+                            {/* Databases */}
+                            <div className="space-y-2">
+                                <MultiSelect
+                                    label="Databases"
+                                    options={databases}
+                                    value={selectedDatabases}
+                                    onChange={setSelectedDatabases}
+                                    placeholder="Select databases"
+                                />
+                            </div>
+
+                            {/* Frameworks */}
+                            <div className="space-y-2">
+                                <MultiSelect
+                                    label="Frameworks & Libraries"
+                                    options={frameworks}
+                                    value={selectedFrameworks}
+                                    onChange={setSelectedFrameworks}
+                                    placeholder="Select frameworks and libraries"
+                                />
+                            </div>
+
+                            {/* Other Technologies */}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">
+                                    Other Technologies
+                                </label>
+                                <TagInput
+                                    value={otherTechnologies}
+                                    onChange={setOtherTechnologies}
+                                    placeholder="Type and press space to add technologies..."
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Add custom technologies not listed above. Type a technology and press space or enter to add it.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end">
+                                <Button 
+                                    type="button" 
+                                    onClick={saveTechnologies}
+                                    disabled={savingTechnologies}
+                                >
+                                    {savingTechnologies ? 'Saving...' : 'Save Technologies'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Professional Information Section */}
+                    <div className="rounded-lg border bg-card p-6">
+                        <div className="space-y-6">
+                            <HeadingSmall title="Professional Information" />
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Profession */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="profession">Profession</Label>
+                                    <Input
+                                        id="profession"
+                                        value={profession}
+                                        onChange={(e) => setProfession(e.target.value)}
+                                        placeholder="e.g., Full Stack Developer"
+                                    />
+                                </div>
+
+                                {/* LinkedIn URL */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="linkedin_url">LinkedIn URL</Label>
+                                    <Input
+                                        id="linkedin_url"
+                                        type="url"
+                                        value={linkedinUrl}
+                                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                                        placeholder="https://linkedin.com/in/username"
+                                    />
+                                </div>
+
+                                {/* GitHub URL */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="github_url">GitHub URL</Label>
+                                    <Input
+                                        id="github_url"
+                                        type="url"
+                                        value={githubUrl}
+                                        onChange={(e) => setGithubUrl(e.target.value)}
+                                        placeholder="https://github.com/username"
+                                    />
+                                </div>
+
+                                {/* CV File Upload */}
+                                <div className="space-y-2">
+                                    <Label>CV File</Label>
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="h-5 w-5 text-muted-foreground" />
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx"
+                                            className="hidden"
+                                            onChange={handleCvChange}
+                                            id="cv-file-input"
+                                        />
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            size="sm"
+                                            onClick={() => {
+                                                const input = document.getElementById('cv-file-input') as HTMLInputElement;
+                                                input?.click();
+                                            }}
+                                        >
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            Upload CV
+                                        </Button>
+                                        {cvFileName && (
                                             <span className="text-sm text-muted-foreground">
-                                                {cvFileName || 'No file selected'}
+                                                {cvFileName}
                                             </span>
-                                        </div>
-                                        <div>
-                                            <input
-                                                type="file"
-                                                accept=".pdf,.doc,.docx"
-                                                className="hidden"
-                                                onChange={handleCvChange}
-                                                id="cv-file-input"
-                                            />
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
-                                                size="sm"
-                                                onClick={() => {
-                                                    const input = document.getElementById('cv-file-input') as HTMLInputElement;
-                                                    input?.click();
-                                                }}
-                                            >
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Upload CV
-                                            </Button>
-                                            {cvFile && (
-                                                <Button 
-                                                    type="button" 
-                                                    variant="default" 
-                                                    size="sm"
-                                                    onClick={saveCvFile}
-                                                    disabled={processing}
-                                                >
-                                                    <Save className="h-4 w-4 mr-2" />
-                                                    {processing ? 'Saving...' : 'Save CV'}
-                                                </Button>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        PDF, DOC or DOCX. Max 5MB. This will be available for download by potential employers.
+                                        PDF, DOC, or DOCX format. Max 5MB.
                                     </p>
-                                    {user.cv_file && (
-                                        <div className="mt-2">
-                                            <a 
-                                                href={`/storage/${user.cv_file}`} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="text-sm text-blue-600 hover:text-blue-800 underline"
-                                            >
-                                                View current CV
-                                            </a>
-                                        </div>
-                                    )}
-                                    <InputError message={undefined} />
                                 </div>
                             </div>
 
-                            {/* Education Section */}
+                            <div className="flex justify-end">
+                                <Button 
+                                    type="button" 
+                                    onClick={saveProfessionalInfo}
+                                    disabled={savingProfessionalInfo}
+                                >
+                                    {savingProfessionalInfo ? 'Saving...' : 'Save Professional Info'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border bg-card p-6">
+                        <form onSubmit={submit} className="space-y-8">
+
+                            {/* Skills Section */}
                             <div className="space-y-6 pt-6 border-t">
                                 <div className="flex items-center justify-between">
-                                    <HeadingSmall title="Education" />
+                                    <HeadingSmall title="Skills" />
                                     <Button 
                                         type="button" 
                                         variant="outline" 
                                         size="sm"
-                                        onClick={addEducation}
+                                        onClick={addSkill}
                                     >
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Add Education
+                                        Add Skill
                                     </Button>
                                 </div>
                                 
-                                {(educationList.length === 0 && savedEducations.length === 0) && (
+                                {(skillsList.length === 0 && savedSkills.length === 0) && (
                                     <div className="text-center py-8 text-muted-foreground">
-                                        <p>No education records added yet.</p>
-                                        <p className="text-sm">Click "Add Education" to get started.</p>
+                                        <p>No skills added yet.</p>
+                                        <p className="text-sm">Click "Add Skill" to get started.</p>
                                     </div>
                                 )}
                                 
-                                {educationList.map((edu, index) => (
+                                {skillsList.map((skill, index) => (
                                     <div key={index} className="p-4 border rounded-lg space-y-4 bg-muted/20">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="font-medium">Education {index + 1}</h4>
+                                            <h4 className="font-medium">Skill {index + 1}</h4>
                                             <div className="flex gap-2">
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => saveEducation(index)}
-                                                    disabled={savingEducation === index}
+                                                    onClick={() => saveSkill(index)}
+                                                    disabled={savingSkill === index}
                                                 >
                                                     <Save className="h-4 w-4 mr-2" />
-                                                    {savingEducation === index ? 'Saving...' : 'Save'}
+                                                    {savingSkill === index ? 'Saving...' : 'Save'}
                                                 </Button>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => removeEducation(index)}
+                                                    onClick={() => removeSkill(index)}
                                                     className="text-destructive hover:text-destructive"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -683,72 +960,32 @@ export default function Index({ user }: Props) {
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>Institution *</Label>
+                                                <Label>Title *</Label>
                                                 <Input
-                                                    value={edu.institution}
-                                                    onChange={(e) => updateEducation(index, 'institution', e.target.value)}
-                                                    placeholder="University or School"
+                                                    value={skill.title}
+                                                    onChange={(e) => updateSkill(index, 'title', e.target.value)}
+                                                    placeholder="e.g. JavaScript, Project Management"
                                                     required
                                                 />
                                             </div>
                                             
                                             <div className="space-y-2">
-                                                <Label>Degree *</Label>
-                                                <Input
-                                                    value={edu.degree}
-                                                    onChange={(e) => updateEducation(index, 'degree', e.target.value)}
-                                                    placeholder="Bachelor's, Master's, etc."
-                                                    required
+                                                <Label>Icon (SVG)</Label>
+                                                <Textarea
+                                                    value={skill.icon || ''}
+                                                    onChange={(e) => updateSkill(index, 'icon', e.target.value)}
+                                                    placeholder="<svg>...</svg> or icon name"
+                                                    rows={3}
                                                 />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label>Field of Study</Label>
-                                                <Input
-                                                    value={edu.field_of_study || ''}
-                                                    onChange={(e) => updateEducation(index, 'field_of_study', e.target.value)}
-                                                    placeholder="Computer Science, Engineering, etc."
-                                                />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label>Start Date *</Label>
-                                                <Input
-                                                    type="date"
-                                                    value={edu.start_date}
-                                                    onChange={(e) => updateEducation(index, 'start_date', e.target.value)}
-                                                    required
-                                                />
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label>End Date</Label>
-                                                <Input
-                                                    type="date"
-                                                    value={edu.end_date || ''}
-                                                    onChange={(e) => updateEducation(index, 'end_date', e.target.value)}
-                                                    disabled={edu.is_current}
-                                                />
-                                            </div>
-                                            
-                                            <div className="space-y-2 flex items-center">
-                                                <Checkbox
-                                                    id={`education-current-${index}`}
-                                                    checked={edu.is_current}
-                                                    onCheckedChange={(checked) => {
-                                                        handleEducationCurrentChange(index, checked === true);
-                                                    }}
-                                                />
-                                                <Label htmlFor={`education-current-${index}`} className="ml-2">Currently studying</Label>
                                             </div>
                                         </div>
                                         
                                         <div className="space-y-2">
                                             <Label>Description</Label>
                                             <Textarea
-                                                value={edu.description || ''}
-                                                onChange={(e) => updateEducation(index, 'description', e.target.value)}
-                                                placeholder="Achievements, activities, coursework..."
+                                                value={skill.description || ''}
+                                                onChange={(e) => updateSkill(index, 'description', e.target.value)}
+                                                placeholder="Describe your proficiency level and experience with this skill..."
                                                 rows={3}
                                             />
                                         </div>
@@ -756,39 +993,49 @@ export default function Index({ user }: Props) {
                                 ))}
                             </div>
 
-                            {/* Saved Education Table */}
-                            {savedEducations.length > 0 && (
+                            {/* Saved Skills Table */}
+                            {savedSkills.length > 0 && (
                                 <div className="space-y-4">
-                                    {/* <HeadingSmall title="Saved Education Records" /> */}
                                     <div className="border rounded-lg overflow-hidden">
                                         <table className="w-full">
                                             <thead className="bg-muted/50">
                                                 <tr>
-                                                    <th className="text-left p-4 font-medium">Institution</th>
-                                                    <th className="text-left p-4 font-medium">Degree</th>
-                                                    <th className="text-left p-4 font-medium">Field</th>
-                                                    <th className="text-left p-4 font-medium">Period</th>
-                                                    <th className="text-left p-4 font-medium">Status</th>
+                                                    <th className="text-left p-4 font-medium">Icon</th>
+                                                    <th className="text-left p-4 font-medium">Title</th>
+                                                    <th className="text-left p-4 font-medium">Description</th>
                                                     <th className="text-left p-4 font-medium">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {savedEducations.map((edu, index) => (
-                                                    <tr key={edu.id || index} className="border-t">
-                                                        <td className="p-4 font-medium">{edu.institution}</td>
-                                                        <td className="p-4">{edu.degree}</td>
-                                                        <td className="p-4">{edu.field_of_study || '-'}</td>
+                                                {savedSkills.map((skill, index) => (
+                                                    <tr key={skill.id || index} className="border-t">
                                                         <td className="p-4">
-                                                            {formatDate(edu.start_date)} - {edu.is_current ? 'Present' : (edu.end_date ? formatDate(edu.end_date) : 'N/A')}
+                                                            {skill.icon ? (
+                                                                <div className="w-8 h-8 flex items-center justify-center">
+                                                                    {skill.icon.startsWith('<svg') ? (
+                                                                        <div dangerouslySetInnerHTML={{ __html: skill.icon }} />
+                                                                    ) : (
+                                                                        <span className="text-2xl">{skill.icon}</span>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+                                                                    <span className="text-xs">?</span>
+                                                                </div>
+                                                            )}
                                                         </td>
+                                                        <td className="p-4 font-medium">{skill.title}</td>
                                                         <td className="p-4">
-                                                            <span className={`px-2 py-1 rounded-full text-xs ${
-                                                                edu.is_current 
-                                                                    ? 'bg-green-100 text-green-800' 
-                                                                    : 'bg-gray-100 text-gray-800'
-                                                            }`}>
-                                                                {edu.is_current ? 'Current' : 'Completed'}
-                                                            </span>
+                                                            {skill.description ? (
+                                                                <span className="text-sm text-muted-foreground">
+                                                                    {skill.description.length > 100 
+                                                                        ? `${skill.description.substring(0, 100)}...` 
+                                                                        : skill.description
+                                                                    }
+                                                                </span>
+                                                            ) : (
+                                                                '-'
+                                                            )}
                                                         </td>
                                                         <td className="p-4">
                                                             <div className="flex gap-2">
@@ -796,7 +1043,7 @@ export default function Index({ user }: Props) {
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    onClick={() => editEducation(index)}
+                                                                    onClick={() => editSkill(index)}
                                                                 >
                                                                     <Edit2 className="h-4 w-4" />
                                                                 </Button>
@@ -804,7 +1051,7 @@ export default function Index({ user }: Props) {
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    onClick={() => edu.id && deleteEducation(edu.id)}
+                                                                    onClick={() => skill.id && setDeleteSkillId(skill.id)}
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
@@ -818,7 +1065,7 @@ export default function Index({ user }: Props) {
                                 </div>
                             )}
 
-                            {/* Experience Section */}
+                            {/* Work Experience Section */}
                             <div className="space-y-6 pt-6 border-t">
                                 <div className="flex items-center justify-between">
                                     <HeadingSmall title="Work Experience" />
@@ -990,62 +1237,62 @@ export default function Index({ user }: Props) {
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    onClick={() => exp.id && deleteExperience(exp.id)}
+                                                                    onClick={() => exp.id && setDeleteExperienceId(exp.id)}
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                             )}
 
-                            {/* Skills Section */}
+                            
                             <div className="space-y-6 pt-6 border-t">
                                 <div className="flex items-center justify-between">
-                                    <HeadingSmall title="Skills" />
+                                    <HeadingSmall title="Education" />
                                     <Button 
                                         type="button" 
                                         variant="outline" 
                                         size="sm"
-                                        onClick={addSkill}
+                                        onClick={addEducation}
                                     >
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Add Skill
+                                        Add Education
                                     </Button>
                                 </div>
                                 
-                                {(skillsList.length === 0 && savedSkills.length === 0) && (
+                                {(educationList.length === 0 && savedEducations.length === 0) && (
                                     <div className="text-center py-8 text-muted-foreground">
-                                        <p>No skills added yet.</p>
-                                        <p className="text-sm">Click "Add Skill" to get started.</p>
+                                        <p>No education records added yet.</p>
+                                        <p className="text-sm">Click "Add Education" to get started.</p>
                                     </div>
                                 )}
                                 
-                                {skillsList.map((skill, index) => (
+                                {educationList.map((edu, index) => (
                                     <div key={index} className="p-4 border rounded-lg space-y-4 bg-muted/20">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="font-medium">Skill {index + 1}</h4>
+                                            <h4 className="font-medium">Education {index + 1}</h4>
                                             <div className="flex gap-2">
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => saveSkill(index)}
-                                                    disabled={savingSkill === index}
+                                                    onClick={() => saveEducation(index)}
+                                                    disabled={savingEducation === index}
                                                 >
                                                     <Save className="h-4 w-4 mr-2" />
-                                                    {savingSkill === index ? 'Saving...' : 'Save'}
+                                                    {savingEducation === index ? 'Saving...' : 'Save'}
                                                 </Button>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => removeSkill(index)}
+                                                    onClick={() => removeEducation(index)}
                                                     className="text-destructive hover:text-destructive"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -1055,32 +1302,72 @@ export default function Index({ user }: Props) {
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>Title *</Label>
+                                                <Label>Institution *</Label>
                                                 <Input
-                                                    value={skill.title}
-                                                    onChange={(e) => updateSkill(index, 'title', e.target.value)}
-                                                    placeholder="e.g. JavaScript, Project Management"
+                                                    value={edu.institution}
+                                                    onChange={(e) => updateEducation(index, 'institution', e.target.value)}
+                                                    placeholder="University or School"
                                                     required
                                                 />
                                             </div>
                                             
                                             <div className="space-y-2">
-                                                <Label>Icon (SVG)</Label>
-                                                <Textarea
-                                                    value={skill.icon || ''}
-                                                    onChange={(e) => updateSkill(index, 'icon', e.target.value)}
-                                                    placeholder="<svg>...</svg> or icon name"
-                                                    rows={3}
+                                                <Label>Degree *</Label>
+                                                <Input
+                                                    value={edu.degree}
+                                                    onChange={(e) => updateEducation(index, 'degree', e.target.value)}
+                                                    placeholder="Bachelor's, Master's, etc."
+                                                    required
                                                 />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Field of Study</Label>
+                                                <Input
+                                                    value={edu.field_of_study || ''}
+                                                    onChange={(e) => updateEducation(index, 'field_of_study', e.target.value)}
+                                                    placeholder="Computer Science, Engineering, etc."
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Start Date *</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={edu.start_date}
+                                                    onChange={(e) => updateEducation(index, 'start_date', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>End Date</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={edu.end_date || ''}
+                                                    onChange={(e) => updateEducation(index, 'end_date', e.target.value)}
+                                                    disabled={edu.is_current}
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2 flex items-center">
+                                                <Checkbox
+                                                    id={`education-current-${index}`}
+                                                    checked={edu.is_current}
+                                                    onCheckedChange={(checked) => {
+                                                        handleEducationCurrentChange(index, checked === true);
+                                                    }}
+                                                />
+                                                <Label htmlFor={`education-current-${index}`} className="ml-2">Currently studying</Label>
                                             </div>
                                         </div>
                                         
                                         <div className="space-y-2">
                                             <Label>Description</Label>
                                             <Textarea
-                                                value={skill.description || ''}
-                                                onChange={(e) => updateSkill(index, 'description', e.target.value)}
-                                                placeholder="Describe your proficiency level and experience with this skill..."
+                                                value={edu.description || ''}
+                                                onChange={(e) => updateEducation(index, 'description', e.target.value)}
+                                                placeholder="Achievements, activities, coursework..."
                                                 rows={3}
                                             />
                                         </div>
@@ -1088,49 +1375,39 @@ export default function Index({ user }: Props) {
                                 ))}
                             </div>
 
-                            {/* Saved Skills Table */}
-                            {savedSkills.length > 0 && (
+                            {/* Saved Education Table */}
+                            {savedEducations.length > 0 && (
                                 <div className="space-y-4">
+                                    {/* <HeadingSmall title="Saved Education Records" /> */}
                                     <div className="border rounded-lg overflow-hidden">
                                         <table className="w-full">
                                             <thead className="bg-muted/50">
                                                 <tr>
-                                                    <th className="text-left p-4 font-medium">Icon</th>
-                                                    <th className="text-left p-4 font-medium">Title</th>
-                                                    <th className="text-left p-4 font-medium">Description</th>
+                                                    <th className="text-left p-4 font-medium">Institution</th>
+                                                    <th className="text-left p-4 font-medium">Degree</th>
+                                                    <th className="text-left p-4 font-medium">Field</th>
+                                                    <th className="text-left p-4 font-medium">Period</th>
+                                                    <th className="text-left p-4 font-medium">Status</th>
                                                     <th className="text-left p-4 font-medium">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {savedSkills.map((skill, index) => (
-                                                    <tr key={skill.id || index} className="border-t">
+                                                {savedEducations.map((edu, index) => (
+                                                    <tr key={edu.id || index} className="border-t">
+                                                        <td className="p-4 font-medium">{edu.institution}</td>
+                                                        <td className="p-4">{edu.degree}</td>
+                                                        <td className="p-4">{edu.field_of_study || '-'}</td>
                                                         <td className="p-4">
-                                                            {skill.icon ? (
-                                                                <div className="w-8 h-8 flex items-center justify-center">
-                                                                    {skill.icon.startsWith('<svg') ? (
-                                                                        <div dangerouslySetInnerHTML={{ __html: skill.icon }} />
-                                                                    ) : (
-                                                                        <span className="text-2xl">{skill.icon}</span>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                                                                    <span className="text-xs">?</span>
-                                                                </div>
-                                                            )}
+                                                            {formatDate(edu.start_date)} - {edu.is_current ? 'Present' : (edu.end_date ? formatDate(edu.end_date) : 'N/A')}
                                                         </td>
-                                                        <td className="p-4 font-medium">{skill.title}</td>
                                                         <td className="p-4">
-                                                            {skill.description ? (
-                                                                <span className="text-sm text-muted-foreground">
-                                                                    {skill.description.length > 100 
-                                                                        ? `${skill.description.substring(0, 100)}...` 
-                                                                        : skill.description
-                                                                    }
-                                                                </span>
-                                                            ) : (
-                                                                '-'
-                                                            )}
+                                                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                                                edu.is_current 
+                                                                    ? 'bg-green-100 text-green-800' 
+                                                                    : 'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                                {edu.is_current ? 'Current' : 'Completed'}
+                                                            </span>
                                                         </td>
                                                         <td className="p-4">
                                                             <div className="flex gap-2">
@@ -1138,7 +1415,7 @@ export default function Index({ user }: Props) {
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    onClick={() => editSkill(index)}
+                                                                    onClick={() => editEducation(index)}
                                                                 >
                                                                     <Edit2 className="h-4 w-4" />
                                                                 </Button>
@@ -1146,7 +1423,7 @@ export default function Index({ user }: Props) {
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    onClick={() => skill.id && deleteSkill(skill.id)}
+                                                                    onClick={() => edu.id && setDeleteEducationId(edu.id)}
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
@@ -1164,6 +1441,67 @@ export default function Index({ user }: Props) {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialogs */}
+            <AlertDialog open={deleteEducationId !== null} onOpenChange={() => setDeleteEducationId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Estás seguro de que quieres eliminar este registro de educación? Esta acción no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => deleteEducationId && deleteEducation(deleteEducationId)}
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={deleteExperienceId !== null} onOpenChange={() => setDeleteExperienceId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Estás seguro de que quieres eliminar este registro de experiencia laboral? Esta acción no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => deleteExperienceId && deleteExperience(deleteExperienceId)}
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={deleteSkillId !== null} onOpenChange={() => setDeleteSkillId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            ¿Estás seguro de que quieres eliminar esta habilidad? Esta acción no se puede deshacer.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => deleteSkillId && deleteSkill(deleteSkillId)}
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

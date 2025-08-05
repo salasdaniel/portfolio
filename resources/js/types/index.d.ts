@@ -62,3 +62,58 @@ export interface Database {
     created_at: string;
     updated_at: string;
 }
+
+export interface UserEducation {
+    id?: number;
+    institution: string;
+    degree: string;
+    field_of_study?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    description?: string;
+    sort_order: number;
+}
+
+export interface UserExperience {
+    id?: number;
+    position: string;
+    company: string;
+    location?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    description?: string;
+    sort_order: number;
+}
+
+export interface UserSkill {
+    id?: number;
+    title: string;
+    description?: string;
+    icon?: string;
+    sort_order: number;
+}
+
+export interface Project {
+    id: number;
+    title: string;
+    description?: string;
+    technologies?: string;
+    github_url?: string;
+    demo_url?: string;
+    image_url?: string;
+    is_private: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TechnologySkill {
+    id: number;
+    name: string;
+}
+
+export interface OtherTechnology {
+    name: string;
+    sort_order: number;
+}

@@ -9,6 +9,7 @@ use App\Models\ProgrammingLanguage;
 use App\Models\Database;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile settings.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
         $validated = $request->validated();
@@ -96,6 +97,19 @@ class ProfileController extends Controller
         
         if (isset($validated['other_technologies'])) {
             $this->updateOtherTechnologies($user, $validated['other_technologies']);
+        }
+
+        // Return JSON response for AJAX requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'message' => 'Profile updated successfully!',
+                'user' => $user->load([
+                    'programmingLanguageSkills',
+                    'frameworkSkills', 
+                    'databaseSkills',
+                    'otherTechnologies'
+                ])
+            ]);
         }
 
         return to_route('profile.edit')->with('status', 'Profile updated successfully!');

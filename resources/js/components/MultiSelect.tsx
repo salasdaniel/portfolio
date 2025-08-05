@@ -13,7 +13,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     options,
     selected,
     onChange,
-    placeholder = "Select options..."
+    // placeholder = "Select options..."
 }) => {
     const handleCheckboxChange = (id: number) => {
         if (selected.includes(id)) {
