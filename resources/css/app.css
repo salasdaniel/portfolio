@@ -201,3 +201,8 @@
 .animation-delay-4000 {
     animation-delay: 4s;
 }
+
+/* Custom input placeholder color */
+input::placeholder {
+    color: #535353 !important;
+}
