@@ -249,39 +249,35 @@ export default function Show({ user }: Props) {
                     
                     {/* Navigation Tabs */}
                     <div className="mb-8 relative z-10">
-                        <nav className="flex space-x-8 border-b transition-all duration-300" style={{ borderColor: '#444444' }}>
-                            <a href="#about" className="py-4 px-2 border-b-2 font-medium text-sm relative group transition-all duration-300" 
-                               style={{ borderColor: '#1db954ff', color: '#ffffff' }}>
-                                About
-                             
-                            </a>
-                            <a href="#resume" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                Resume
-                               
-                            </a>
-                            <a href="#portfolio" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                Portfolio
-                               
-                            </a>
-                            <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                Blog
-                               
-                            </a>
-                            <a href="#contact" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                Contact
-                              
-                            </a>
-                        </nav>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
+                                About Me
+                            </h2>
+                            <nav className="flex space-x-8">
+                                <a href="#about" className="py-4 px-2 border-b-2 font-medium text-sm relative group transition-all duration-300" 
+                                   style={{ borderColor: '#1db954ff', color: '#ffffff' }}>
+                                    About
+                                </a>
+                                <a href="#resume" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                    Resume
+                                </a>
+                                <a href="#portfolio" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                    Portfolio
+                                </a>
+                                <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                    Blog
+                                </a>
+                                <a href="#contact" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                    Contact
+                                </a>
+                            </nav>
+                        </div>
                     </div>
 
-                    {/* About Me Section */}
+                    {/* About Me Section - Remove the title from here */}
                     <div className="mb-12 relative z-10">
-                        <h2 className="text-3xl font-bold mb-6 transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                            About Me
-                        </h2>
                         <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
                             <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
-                            
                         </div>
                         
                         {user.description && (
@@ -296,6 +292,10 @@ export default function Show({ user }: Props) {
                         <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
                             What I'm Doing
                         </h2>
+                        <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {user.skills && user.skills.length > 0 ? (
                                 user.skills.map((skill, index) => (
