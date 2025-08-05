@@ -79,29 +79,17 @@ export default function Show({ user }: Props) {
     console.log('Framework Skills:', user.framework_skills);
     console.log('User Skills:', user.skills);
     
-    // Crear estilos dinámicos para el carrusel
-    const totalItems = (user.programming_language_skills?.length || 0) + 
-                      (user.framework_skills?.length || 0) + 
-                      (user.database_skills?.length || 0);
-    
     return (
         <div style={{ backgroundColor: '#121212', minHeight: '100vh' }}>
-            {/* Estilos para animación del carrusel */}
+            {/* Estilos para el carrusel scrolleable */}
             <style dangerouslySetInnerHTML={{
                 __html: `
-                @keyframes scroll {
-                    0% {
-                        transform: translateX(0);
-                    }
-                    100% {
-                        transform: translateX(calc(-120px * ${totalItems}));
-                    }
+                .scroll-container {
+                    scrollbar-width: none;
+                    -ms-overflow-style: none;
                 }
-                .animate-scroll {
-                    animation: scroll 30s linear infinite;
-                }
-                .animate-scroll:hover {
-                    animation-play-state: paused;
+                .scroll-container::-webkit-scrollbar {
+                    display: none;
                 }
                 `
             }} />
@@ -263,25 +251,25 @@ export default function Show({ user }: Props) {
                     <div className="mb-8 relative z-10">
                         <nav className="flex space-x-8 border-b transition-all duration-300" style={{ borderColor: '#444444' }}>
                             <a href="#about" className="py-4 px-2 border-b-2 font-medium text-sm relative group transition-all duration-300" 
-                               style={{ borderColor: '#f39c12', color: '#f39c12' }}>
+                               style={{ borderColor: '#1db954ff', color: '#ffffff' }}>
                                 About
-                                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                             
                             </a>
                             <a href="#resume" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                 Resume
-                                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                               
                             </a>
                             <a href="#portfolio" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                 Portfolio
-                                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                               
                             </a>
                             <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                 Blog
-                                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                               
                             </a>
                             <a href="#contact" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                 Contact
-                                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+                              
                             </a>
                         </nav>
                     </div>
@@ -289,11 +277,11 @@ export default function Show({ user }: Props) {
                     {/* About Me Section */}
                     <div className="mb-12 relative z-10">
                         <h2 className="text-3xl font-bold mb-6 transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                            About Mesidro
+                            About Me
                         </h2>
                         <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
-                            <div className="absolute inset-0" style={{ backgroundColor: '#f39c12' }}></div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-300 via-orange-400 to-orange-500 animate-pulse"></div>
+                            <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            
                         </div>
                         
                         {user.description && (
@@ -312,9 +300,9 @@ export default function Show({ user }: Props) {
                             {user.skills && user.skills.length > 0 ? (
                                 user.skills.map((skill, index) => (
                                     <div key={index} className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#f39c12' }}>
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" >
                                             {skill.icon ? (
-                                                <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-6 h-6 text-white" />
+                                                <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:p-2" style={{ color: '#ffffff', fill: '#ffffff' }} />
                                             ) : (
                                                 <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -335,7 +323,7 @@ export default function Show({ user }: Props) {
                                 /* Default fallback cards if no skills data */
                                 <>
                                     <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#f39c12' }}>
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
                                             <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                 <path d="M17 2v2h3v16H4V4h3V2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2z"/>
                                                 <path d="M9 2v2h6V2c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"/>
@@ -351,7 +339,7 @@ export default function Show({ user }: Props) {
                                         </div>
                                     </div>
                                     <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#f39c12' }}>
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
                                             <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                 <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z"/>
                                             </svg>
@@ -381,89 +369,51 @@ export default function Show({ user }: Props) {
                             </div>
 
                             {/* Technologies Carousel Container */}
-                            <div className="relative overflow-hidden rounded-2xl p-8 flex justify-center" >
-                                <div className="flex gap-6 animate-scroll">
-                                    {/* Programming Languages */}
-                                    {user.programming_language_skills?.map((skill, index) => (
-                                        <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                                
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                            
-                                        </div>
-                                    ))}
-                                    
-                                    {/* Frameworks */}
-                                    {user.framework_skills?.map((skill, index) => (
-                                        <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                                
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                            
-                                        </div>
-                                    ))}
-                                    
-                                    {/* Databases */}
-                                    {user.database_skills?.map((skill, index) => (
-                                        <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                              
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                          
-                                        </div>
-                                    ))}
-
-                                    {/* Duplicate items for infinite scroll effect */}
-                                    {user.programming_language_skills?.map((skill, index) => (
-                                        <div key={`prog-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                                
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                            
-                                        </div>
-                                    ))}
-                                    
-                                    {user.framework_skills?.map((skill, index) => (
-                                        <div key={`framework-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                              
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                           
-                                        </div>
-                                    ))}
-                                    
-                                    {user.database_skills?.map((skill, index) => (
-                                        <div key={`db-dup-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                             style={{ 
-                                                 backgroundColor: '#1a1a1a', 
-                                                
-                                             }}>
-                                            <span className="text-sm font-bold text-center" style={{ color: '#1db954ff' }}>
-                                                {skill.name}
-                                            </span>
-                                           
-                                        </div>
-                                    ))}
+                            <div className="relative rounded-2xl  flex justify-center" >
+                                <div className="w-full">
+                                    <div className="flex gap-6 min-w-max ">
+                                        {/* Programming Languages */}
+                                        {user.programming_language_skills?.map((skill, index) => (
+                                            <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                 style={{ 
+                                                     backgroundColor: '#1a1a1a', 
+                                                     
+                                                 }}>
+                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
+                                        
+                                            </div>
+                                        ))}
+                                        
+                                        {/* Frameworks */}
+                                        {user.framework_skills?.map((skill, index) => (
+                                            <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                 style={{ 
+                                                     backgroundColor: '#1a1a1a', 
+                                                     
+                                                 }}>
+                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
+                                        
+                                            </div>
+                                        ))}
+                                        
+                                        {/* Databases */}
+                                        {user.database_skills?.map((skill, index) => (
+                                            <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                 style={{ 
+                                                     backgroundColor: '#1a1a1a', 
+                                                     
+                                                 }}>
+                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
+                                        
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
