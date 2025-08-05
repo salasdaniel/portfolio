@@ -38,7 +38,10 @@ class PortfolioController extends Controller
      */
     public function show(string $username): Response
     {
-        $user = User::where('name', $username)
+        // Decode the URL-encoded username
+        $decodedUsername = urldecode($username);
+        
+        $user = User::where('username', $decodedUsername)
             ->with([
                 'education' => function ($query) {
                     $query->orderBy('start_date', 'desc');
@@ -63,7 +66,7 @@ class PortfolioController extends Controller
 
         return Inertia::render('Portfolio/Show', [
             'user' => $user,
-            'username' => $username
+            'username' => $decodedUsername
         ]);
     }
 }
