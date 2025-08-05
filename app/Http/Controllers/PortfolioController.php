@@ -53,7 +53,15 @@ class PortfolioController extends Controller
                     $query->orderBy('sort_order');
                 },
                 'projects' => function ($query) {
-                    $query->orderBy('created_at', 'desc');
+                    $query->with([
+                        'programmingLanguages',
+                        'frameworks', 
+                        'tags',
+                        'environment',
+                        'status',
+                        'database',
+                        'projectType'
+                    ])->orderBy('created_at', 'desc');
                 },
                 'programmingLanguageSkills',
                 'databaseSkills',
@@ -64,8 +72,38 @@ class PortfolioController extends Controller
             ])
             ->firstOrFail();
 
+        // Transform projects to match the required structure
+        $transformedProjects = $user->projects->map(function ($project) {
+            return [
+                'id' => $project->id,
+                'title' => $project->title,
+                'description' => $project->description,
+                'repo_url' => $project->repo_url,
+                'live_url' => $project->live_url,
+                'image_url' => $project->image_url,
+                'created_at' => $project->created_at,
+                'updated_at' => $project->updated_at,
+                'environment_id' => $project->environment_id,
+                'user_id' => $project->user_id,
+                'status_id' => $project->status_id,
+                'database_id' => $project->database_id,
+                'project_type_id' => $project->project_type_id,
+                'is_private' => $project->is_private,
+                'is_pinned' => $project->is_pinned,
+                'pin_order' => $project->pin_order,
+                'programming_languages' => $project->programmingLanguages ? $project->programmingLanguages->pluck('name')->toArray() : [],
+                'frameworks' => $project->frameworks ? $project->frameworks->pluck('name')->toArray() : [],
+                'tags' => $project->tags ? $project->tags->pluck('name')->toArray() : [],
+                'environment' => $project->environment ? $project->environment->name : null,
+                'status' => $project->status ? $project->status->name : null,
+                'database' => $project->database ? $project->database->name : null,
+                'project_type' => $project->projectType ? $project->projectType->name : null,
+            ];
+        });
+
         return Inertia::render('Portfolio/Show', [
             'user' => $user,
+            'projects' => $transformedProjects,
             'username' => $decodedUsername
         ]);
     }

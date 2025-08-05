@@ -1,4 +1,4 @@
-import PublicLayout from '@/layouts/PublicLayout';
+import { useState } from 'react';
 
 interface User {
     id: number;
@@ -12,14 +12,6 @@ interface User {
     github_url?: string;
     profile_image?: string;
     description?: string;
-    projects?: Array<{
-        name?: string;
-        description?: string;
-        technologies?: string;
-        status?: string;
-        repository_url?: string;
-        demo_url?: string;
-    }>;
     education?: Array<{
         degree?: string;
         institution?: string;
@@ -66,18 +58,53 @@ interface User {
     }>;
 }
 
+interface Project {
+    id: number;
+    title: string;
+    description: string;
+    repo_url?: string;
+    live_url?: string;
+    image_url?: string;
+    created_at: string;
+    updated_at: string;
+    environment_id: number;
+    user_id: number;
+    status_id: number;
+    database_id: number;
+    project_type_id: number;
+    is_private: boolean;
+    is_pinned: boolean;
+    pin_order?: number;
+    programming_languages: string[];
+    frameworks: string[];
+    tags: string[];
+    environment: string;
+    status: string;
+    database: string;
+    project_type: string;
+}
+
 interface Props {
     user: User;
+    projects: Project[];
     username: string;
 }
 
-export default function Show({ user }: Props) {
+export default function Show({ user, projects }: Props) {
+    const [activeSection, setActiveSection] = useState('about');
+
     // Debug logs to see what data is being received
-    console.log('User data:', user);
-    console.log('Programming Languages:', user.programming_language_skills);
-    console.log('Database Skills:', user.database_skills);
-    console.log('Framework Skills:', user.framework_skills);
-    console.log('User Skills:', user.skills);
+    // console.log('User data:', user);
+    // console.log('Programming Languages:', user.programming_language_skills);
+    // console.log('Database Skills:', user.database_skills);
+    // console.log('Framework Skills:', user.framework_skills);
+    // console.log('User Skills:', user.skills);
+    // console.log('Projects:', projects);
+    
+    // Debug specific project data
+    if (projects && projects.length > 0) {
+        console.log('Projects data:', projects);
+    }
     
     return (
         <div style={{ backgroundColor: '#121212', minHeight: '100vh' }}>
@@ -251,16 +278,37 @@ export default function Show({ user }: Props) {
                     <div className="mb-8 relative z-10">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                                About Me
+                                {activeSection === 'about' ? 'About Me' : 'My Projects'}
                             </h2>
                             <nav className="flex space-x-8">
-                                <a href="#about" className="py-4 px-2 border-b-2 font-medium text-sm relative group transition-all duration-300" 
-                                   style={{ borderColor: '#1db954ff', color: '#ffffff' }}>
+                                <button 
+                                    onClick={() => setActiveSection('about')}
+                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${
+                                        activeSection === 'about' 
+                                            ? 'border-b-2' 
+                                            : 'hover:opacity-80 hover:text-orange-400'
+                                    }`}
+                                    style={{ 
+                                        borderColor: activeSection === 'about' ? '#1db954ff' : 'transparent',
+                                        color: activeSection === 'about' ? '#ffffff' : '#888888' 
+                                    }}
+                                >
                                     About
-                                </a>
-                                <a href="#resume" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                    Resume
-                                </a>
+                                </button>
+                                <button 
+                                    onClick={() => setActiveSection('projects')}
+                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${
+                                        activeSection === 'projects' 
+                                            ? 'border-b-2' 
+                                            : 'hover:opacity-80 hover:text-orange-400'
+                                    }`}
+                                    style={{ 
+                                        borderColor: activeSection === 'projects' ? '#1db954ff' : 'transparent',
+                                        color: activeSection === 'projects' ? '#ffffff' : '#888888' 
+                                    }}
+                                >
+                                    Projects
+                                </button>
                                 <a href="#portfolio" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                     Portfolio
                                 </a>
@@ -274,180 +322,372 @@ export default function Show({ user }: Props) {
                         </div>
                     </div>
 
-                    {/* About Me Section - Remove the title from here */}
-                    <div className="mb-12 relative z-10">
-                        <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
-                            <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
-                        </div>
-                        
-                        {user.description && (
-                            <p className="text-lg leading-relaxed mb-8 transition-all duration-300 hover:text-gray-200" style={{ color: '#cccccc' }}>
-                                {user.description}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* What I'm Doing Section */}
-                    <div className="mb-12">
-                        <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                            What I'm Doing
-                        </h2>
-                        <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
-                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                    {/* Conditional Content Based on Active Section */}
+                    {activeSection === 'about' ? (
+                        <>
+                            {/* About Me Section */}
+                            <div className="mb-12 relative z-10">
+                                <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
+                                    <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                </div>
+                                
+                                {user.description && (
+                                    <p className="text-lg leading-relaxed mb-8 transition-all duration-300 hover:text-gray-200" style={{ color: '#cccccc' }}>
+                                        {user.description}
+                                    </p>
+                                )}
                             </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {user.skills && user.skills.length > 0 ? (
-                                user.skills.map((skill, index) => (
-                                    <div key={index} className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" >
-                                            {skill.icon ? (
-                                                <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:p-2" style={{ color: '#ffffff', fill: '#ffffff' }} />
-                                            ) : (
-                                                <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
-                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
-                                                {skill.title}
-                                            </h3>
-                                            <p style={{ color: '#cccccc' }}>
-                                                {skill.description}
-                                            </p>
+
+                            {/* What I'm Doing Section */}
+                            <div className="mb-12">
+                                <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                    What I'm Doing
+                                </h2>
+                                <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                    <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                </div>
+                            
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {user.skills && user.skills.length > 0 ? (
+                                        user.skills.map((skill, index) => (
+                                            <div key={index} className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" >
+                                                    {skill.icon ? (
+                                                        <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:p-2" style={{ color: '#ffffff', fill: '#ffffff' }} />
+                                                    ) : (
+                                                        <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                        {skill.title}
+                                                    </h3>
+                                                    <p style={{ color: '#cccccc' }}>
+                                                        {skill.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        /* Default fallback cards if no skills data */
+                                        <>
+                                            <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
+                                                    <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                                        <path d="M17 2v2h3v16H4V4h3V2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2z"/>
+                                                        <path d="M9 2v2h6V2c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                        Mobile Apps
+                                                    </h3>
+                                                    <p style={{ color: '#cccccc' }}>
+                                                        Professional development of applications for Android and iOS.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
+                                                    <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                                        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                        Web Development
+                                                    </h3>
+                                                    <p style={{ color: '#cccccc' }}>
+                                                        High-quality development of sites at the professional level.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Stack Section */}
+                            {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
+                                <div className="mb-12">
+                                    <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                        Stack
+                                    </h2>
+                                    <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                        <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                    </div>
+
+                                    {/* Technologies Carousel Container */}
+                                    <div className="relative rounded-2xl  flex justify-center" >
+                                        <div className="w-full">
+                                            <div className="flex gap-6 min-w-max ">
+                                                {/* Programming Languages */}
+                                                {user.programming_language_skills?.map((skill, index) => (
+                                                    <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                         style={{ 
+                                                             backgroundColor: '#1a1a1a', 
+                                                             
+                                                         }}>
+                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                            {skill.name}
+                                                        </span>
+                                                
+                                                    </div>
+                                                ))}
+                                                
+                                                {/* Frameworks */}
+                                                {user.framework_skills?.map((skill, index) => (
+                                                    <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                         style={{ 
+                                                             backgroundColor: '#1a1a1a', 
+                                                             
+                                                         }}>
+                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                            {skill.name}
+                                                        </span>
+                                                
+                                                    </div>
+                                                ))}
+                                                
+                                                {/* Databases */}
+                                                {user.database_skills?.map((skill, index) => (
+                                                    <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                                         style={{ 
+                                                             backgroundColor: '#1a1a1a', 
+                                                             
+                                                         }}>
+                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
+                                                            {skill.name}
+                                                        </span>
+                                                
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                /* Default fallback cards if no skills data */
-                                <>
-                                    <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
-                                            <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
-                                                <path d="M17 2v2h3v16H4V4h3V2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2z"/>
-                                                <path d="M9 2v2h6V2c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2z"/>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
-                                                Mobile Apps
-                                            </h3>
-                                            <p style={{ color: '#cccccc' }}>
-                                                Professional development of applications for Android and iOS.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
-                                            <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
-                                                <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z"/>
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
-                                                Web Development
-                                            </h3>
-                                            <p style={{ color: '#cccccc' }}>
-                                                High-quality development of sites at the professional level.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </>
+                                </div>
                             )}
-                        </div>
-                    </div>
 
-                    {/* Stack Section */}
-                    {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
-                        <div className="mb-12">
-                            <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                                Stack
-                            </h2>
-                            <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
-                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
-                            </div>
+                            {/* Other Technologies Section */}
+                            {user.other_technologies?.length && (
+                                <div className="mb-12">
+                                    <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                        Other Technologies
+                                    </h2>
+                                    <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                        <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                    </div>
 
-                            {/* Technologies Carousel Container */}
-                            <div className="relative rounded-2xl  flex justify-center" >
-                                <div className="w-full">
-                                    <div className="flex gap-6 min-w-max ">
-                                        {/* Programming Languages */}
-                                        {user.programming_language_skills?.map((skill, index) => (
-                                            <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
+                                    {/* Technologies Tags */}
+                                    <div className="flex flex-wrap gap-3">
+                                        {user.other_technologies.map((tech, index) => (
+                                            <div key={index} className="px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group" 
                                                  style={{ 
-                                                     backgroundColor: '#1a1a1a', 
+                                                     backgroundColor: '#2c2c2c', 
+                                                   
                                                      
                                                  }}>
-                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                    {skill.name}
+                                                <span className="text-sm font-medium" style={{ color: '#cccccc' }}>
+                                                    {tech.name}
                                                 </span>
-                                        
-                                            </div>
-                                        ))}
-                                        
-                                        {/* Frameworks */}
-                                        {user.framework_skills?.map((skill, index) => (
-                                            <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                                 style={{ 
-                                                     backgroundColor: '#1a1a1a', 
-                                                     
-                                                 }}>
-                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                    {skill.name}
-                                                </span>
-                                        
-                                            </div>
-                                        ))}
-                                        
-                                        {/* Databases */}
-                                        {user.database_skills?.map((skill, index) => (
-                                            <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer" 
-                                                 style={{ 
-                                                     backgroundColor: '#1a1a1a', 
-                                                     
-                                                 }}>
-                                                <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                    {skill.name}
-                                                </span>
-                                        
+                                                {tech.level && (
+                                                    <span className="text-xs ml-2 opacity-70" style={{ color: '#cccccc' }}>
+                                                        {tech.level}
+                                                    </span>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Other Technologies Section */}
-                    {user.other_technologies?.length && (
-                        <div className="mb-12">
-                            <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
-                                Other Technologies
-                            </h2>
-                            <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                            )}
+                        </>
+                    ) : (
+                        /* Projects Section */
+                        <div className="mb-12 relative z-10">
+                            <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
                                 <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                             </div>
 
-                            {/* Technologies Tags */}
-                            <div className="flex flex-wrap gap-3">
-                                {user.other_technologies.map((tech, index) => (
-                                    <div key={index} className="px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group" 
-                                         style={{ 
-                                             backgroundColor: '#2c2c2c', 
-                                           
-                                             
-                                         }}>
-                                        <span className="text-sm font-medium" style={{ color: '#cccccc' }}>
-                                            {tech.name}
-                                        </span>
-                                        {tech.level && (
-                                            <span className="text-xs ml-2 opacity-70" style={{ color: '#cccccc' }}>
-                                                {tech.level}
-                                            </span>
-                                        )}
+                            {/* Projects Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {projects && projects.length > 0 ? (
+                                    projects.map((project) => (
+                                        <div key={project.id} className="bg-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl group cursor-pointer" 
+                                             style={{ backgroundColor: '#2c2c2c' }}>
+                                            
+                                            {/* Project Image */}
+                                            <div className="w-full h-48 overflow-hidden relative">
+                                                {project.image_url ? (
+                                                    <img 
+                                                        src={project.image_url} 
+                                                        alt={project.title}
+                                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-blue-500/20 opacity-50"></div>
+                                                        <svg className="w-16 h-16 z-10" fill="#1db954ff" viewBox="0 0 24 24">
+                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                        </svg>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* Status Badge */}
+                                                <div className="absolute top-4 right-4">
+                                                    <span className={`px-3 py-1 text-xs rounded-full font-medium ${
+                                                        project.status === 'Completed' 
+                                                            ? 'bg-green-500/20 text-green-300' 
+                                                            : project.status === 'In Progress'
+                                                            ? 'bg-yellow-500/20 text-yellow-300'
+                                                            : 'bg-gray-500/20 text-gray-300'
+                                                    }`}>
+                                                        {project.status}
+                                                    </span>
+                                                </div>
+
+                                                {/* Pin Badge */}
+                                                {project.is_pinned && (
+                                                    <div className="absolute top-4 left-4">
+                                                        <span className="px-2 py-1 text-xs rounded-full font-medium bg-orange-500/20 text-orange-300">
+                                                            Pinned #{project.pin_order}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Project Content */}
+                                            <div className="p-6">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <h3 className="text-xl font-bold transition-colors duration-300 group-hover:text-green-400" 
+                                                        style={{ color: '#ffffff' }}>
+                                                        {project.title}
+                                                    </h3>
+                                                    {project.is_private && (
+                                                        <svg className="w-4 h-4" fill="#888888" viewBox="0 0 24 24">
+                                                            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                                
+                                                <span className="text-xs px-2 py-1 rounded mb-3 inline-block" 
+                                                      style={{ backgroundColor: '#1db954ff', color: '#121212' }}>
+                                                    {project.project_type}
+                                                </span>
+                                                
+                                                <p className="text-sm mb-4 line-clamp-3" style={{ color: '#cccccc' }}>
+                                                    {project.description}
+                                                </p>
+
+                                                {/* Programming Languages */}
+                                                {project.programming_languages && project.programming_languages.length > 0 && (
+                                                    <div className="mb-3">
+                                                        <p className="text-xs font-semibold mb-1" style={{ color: '#888888' }}>PROGRAMMING LANGUAGES</p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {project.programming_languages.map((lang, langIndex) => (
+                                                                <span key={langIndex} 
+                                                                      className="px-2 py-1 text-xs rounded" 
+                                                                      style={{ 
+                                                                          backgroundColor: 'rgba(29, 185, 84, 0.1)', 
+                                                                          color: '#1db954ff' 
+                                                                      }}>
+                                                                    {lang}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Frameworks */}
+                                                {project.frameworks && project.frameworks.length > 0 && (
+                                                    <div className="mb-3">
+                                                        <p className="text-xs font-semibold mb-1" style={{ color: '#888888' }}>FRAMEWORKS</p>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {project.frameworks.map((framework, fwIndex) => (
+                                                                <span key={fwIndex} 
+                                                                      className="px-2 py-1 text-xs rounded" 
+                                                                      style={{ 
+                                                                          backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+                                                                          color: '#3b82f6' 
+                                                                      }}>
+                                                                    {framework}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Environment & Database */}
+                                                <div className="mb-4 flex gap-4 text-xs">
+                                                    <div>
+                                                        <span style={{ color: '#888888' }}>ENVIRONMENT: </span>
+                                                        <span style={{ color: '#ffffff' }}>{project.environment}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span style={{ color: '#888888' }}>DATABASE: </span>
+                                                        <span style={{ color: '#ffffff' }}>{project.database}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Tags */}
+                                                {project.tags && project.tags.length > 0 && (
+                                                    <div className="mb-4">
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {project.tags.map((tag, tagIndex) => (
+                                                                <span key={tagIndex} 
+                                                                      className="px-2 py-1 text-xs rounded" 
+                                                                      style={{ 
+                                                                          backgroundColor: 'rgba(156, 163, 175, 0.1)', 
+                                                                          color: '#9ca3af' 
+                                                                      }}>
+                                                                    #{tag}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Action Buttons */}
+                                                <div className="flex gap-3 mt-6">
+                                                    {project.live_url && (
+                                                        <a href={project.live_url}
+                                                           target="_blank"
+                                                           rel="noopener noreferrer"
+                                                           className="flex-1 py-2 px-4 rounded-lg text-center text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                                                           style={{ 
+                                                               backgroundColor: '#1db954ff', 
+                                                               color: '#121212' 
+                                                           }}>
+                                                            Live Demo
+                                                        </a>
+                                                    )}
+                                                    {project.repo_url && (
+                                                        <a href={project.repo_url}
+                                                           target="_blank"
+                                                           rel="noopener noreferrer"
+                                                           className="flex-1 py-2 px-4 rounded-lg text-center text-sm font-medium transition-all duration-300 hover:scale-105 border border-gray-600 hover:border-gray-500"
+                                                           style={{ color: '#ffffff' }}>
+                                                            Repository
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-12">
+                                        <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#888888' }}>
+                                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                                        </svg>
+                                        <p className="text-lg font-medium mb-2" style={{ color: '#ffffff' }}>
+                                            No Projects Yet
+                                        </p>
+                                        <p style={{ color: '#888888' }}>
+                                            Projects will appear here once they are added to the portfolio.
+                                        </p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     )}
