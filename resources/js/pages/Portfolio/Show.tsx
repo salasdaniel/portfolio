@@ -1,3 +1,4 @@
+import { SearchableSelectFieldDark } from '@/components/ui/searchable-select-field-dark';
 import { useState } from 'react';
 
 interface User {
@@ -94,6 +95,11 @@ export default function Show({ user, projects }: Props) {
     const [activeSection, setActiveSection] = useState('about');
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    
+    // Filter states
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+    const [selectedFramework, setSelectedFramework] = useState<string>('all');
+    const [selectedDatabase, setSelectedDatabase] = useState<string>('all');
 
     // Debug logs to see what data is being received
     // console.log('User data:', user);
@@ -107,6 +113,57 @@ export default function Show({ user, projects }: Props) {
     if (projects && projects.length > 0) {
         console.log('Projects data:', projects);
     }
+
+    // Get unique values for filters
+    const getUniqueLanguages = () => {
+        const languages = new Set<string>();
+        projects?.forEach(project => {
+            project.programming_languages?.forEach(lang => languages.add(lang));
+        });
+        return Array.from(languages).sort().map(lang => ({ id: lang, name: lang }));
+    };
+
+    const getUniqueFrameworks = () => {
+        const frameworks = new Set<string>();
+        projects?.forEach(project => {
+            project.frameworks?.forEach(fw => frameworks.add(fw));
+        });
+        return Array.from(frameworks).sort().map(fw => ({ id: fw, name: fw }));
+    };
+
+    const getUniqueDatabases = () => {
+        const databases = new Set<string>();
+        projects?.forEach(project => {
+            if (project.database) databases.add(project.database);
+        });
+        return Array.from(databases).sort().map(db => ({ id: db, name: db }));
+    };
+
+    // Filter projects based on selected filters
+    const getFilteredProjects = () => {
+        if (!projects) return [];
+        
+        return projects.filter(project => {
+            const languageMatch = selectedLanguage === 'all' || 
+                project.programming_languages?.includes(selectedLanguage);
+            
+            const frameworkMatch = selectedFramework === 'all' || 
+                project.frameworks?.includes(selectedFramework);
+            
+            const databaseMatch = selectedDatabase === 'all' || 
+                project.database === selectedDatabase;
+            
+            return languageMatch && frameworkMatch && databaseMatch;
+        });
+    };
+
+    const clearAllFilters = () => {
+        setSelectedLanguage('all');
+        setSelectedFramework('all');
+        setSelectedDatabase('all');
+    };
+
+    const filteredProjects = getFilteredProjects();
 
     const openProjectModal = (project: Project) => {
         setSelectedProject(project);
@@ -204,7 +261,7 @@ export default function Show({ user, projects }: Props) {
                         {/* Email */}
                         {user.email && (
                             <div className="">
-                                <h3 className="text-xs font-semibold mb-1 transition-colors duration-300" style={{ color: 'rgba(204, 204, 204, 0.6)' }}>
+                                <h3 className="text-xs font-semibold mb-1 transition-colors duration-300" style={{ color: '#cccccc99' }}>
                                     EMAIL
                                 </h3>
                                 <h2 className="transition-all duration-300 group-hover:text-green-400" style={{ color: '#ffffff' }}>
@@ -520,10 +577,104 @@ export default function Show({ user, projects }: Props) {
                                 <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                             </div>
 
+                            {/* Filters */}
+                            <div className="mb-8 bg-gray-800 p-4 rounded-lg shadow-sm" style={{ backgroundColor: 'transparent' }}>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Language Filter */}
+                                    <div className="space-y-2">
+                                        <SearchableSelectFieldDark
+                                            label="Language"
+                                            options={getUniqueLanguages()}
+                                            value={selectedLanguage === 'all' ? '' : selectedLanguage}
+                                            onValueChange={(value) => setSelectedLanguage(value || 'all')}
+                                            placeholder="All languages"
+                                            searchPlaceholder="Search languages..."
+                                          
+                                        />
+                                    </div>
+
+                                    {/* Framework Filter */}
+                                    <div className="space-y-2">
+                                        <SearchableSelectFieldDark
+                                            label="Framework"
+                                            options={getUniqueFrameworks()}
+                                            value={selectedFramework === 'all' ? '' : selectedFramework}
+                                            onValueChange={(value) => setSelectedFramework(value || 'all')}
+                                            placeholder="All frameworks"
+                                            searchPlaceholder="Search frameworks..."
+                                        />
+                                    </div>
+
+                                    {/* Database Filter */}
+                                    <div className="space-y-2">
+                                        <SearchableSelectFieldDark
+                                            label="Database"
+                                            options={getUniqueDatabases()}
+                                            value={selectedDatabase === 'all' ? '' : selectedDatabase}
+                                            onValueChange={(value) => setSelectedDatabase(value || 'all')}
+                                            placeholder="All databases"
+                                            searchPlaceholder="Search databases..."
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Active Filters and Clear Button */}
+                                {(selectedLanguage !== 'all' || selectedFramework !== 'all' || selectedDatabase !== 'all') && (
+                                    <div className="mt-4 pt-2">
+                                        <div className="flex flex-wrap items-center gap-2 justify-between">
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedLanguage !== 'all' && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-600 text-blue-100">
+                                                        {selectedLanguage}
+                                                        <button
+                                                            onClick={() => setSelectedLanguage('all')}
+                                                            className="ml-1 text-blue-200 hover:text-white"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                )}
+                                                {selectedFramework !== 'all' && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-600 text-green-100">
+                                                        {selectedFramework}
+                                                        <button
+                                                            onClick={() => setSelectedFramework('all')}
+                                                            className="ml-1 text-green-200 hover:text-white"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                )}
+                                                {selectedDatabase !== 'all' && (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-600 text-purple-100">
+                                                        {selectedDatabase}
+                                                        <button
+                                                            onClick={() => setSelectedDatabase('all')}
+                                                            className="ml-1 text-purple-200 hover:text-white"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={clearAllFilters}
+                                                className="px-3 py-1 text-xs text-gray-300 hover:text-white border border-gray-600 rounded hover:bg-gray-600 transition-colors"
+                                            >
+                                                Clear All
+                                            </button>
+                                        </div>
+                                        <div className="mt-2 text-xs" style={{ color: 'rgba(204, 204, 204, 0.6)' }}>
+                                            Showing {filteredProjects.length} of {projects?.length || 0} projects
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Projects Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {projects && projects.length > 0 ? (
-                                    projects.map((project) => (
+                                {filteredProjects && filteredProjects.length > 0 ? (
+                                    filteredProjects.map((project) => (
                                         <div key={project.id} className="bg-gray-800 rounded-xl overflow-hidden cursor-pointer group"
                                             style={{ backgroundColor: '#2c2c2c' }}
                                             onClick={() => openProjectModal(project)}>
@@ -579,7 +730,7 @@ export default function Show({ user, projects }: Props) {
                                             </div>
 
                                             {/* Project Content */}
-                                            <div className="p-6 text-white">
+                                            <div className="px-6 py-1 text-white">
                                                 <p className="text-sm py-2"
                                                 >
                                                     {project.project_type}
@@ -716,7 +867,7 @@ export default function Show({ user, projects }: Props) {
                         </div>
 
                         {/* Card Content */}
-                        <div className="p-6 md:p-8">
+                        <div className="p-6 md:p-6">
                             {/* Project Type and Title */}
                             <div className="mb-4">
                                 <div className="flex items-center justify-between ">
