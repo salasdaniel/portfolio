@@ -101,9 +101,45 @@ class PortfolioController extends Controller
             ];
         });
 
+        // Transform experience to match the required structure
+        $transformedExperience = $user->experience->map(function ($experience) {
+            return [
+                'id' => $experience->id,
+                'position' => $experience->position,
+                'company' => $experience->company,
+                'description' => $experience->description,
+                'start_date' => $experience->start_date,
+                'end_date' => $experience->end_date,
+                'is_current' => $experience->is_current,
+                'location' => $experience->location,
+                'employment_type' => $experience->employment_type,
+                'created_at' => $experience->created_at,
+                'updated_at' => $experience->updated_at,
+            ];
+        });
+
+        // Transform education to match the required structure
+        $transformedEducation = $user->education->map(function ($education) {
+            return [
+                'id' => $education->id,
+                'degree' => $education->degree,
+                'institution' => $education->institution,
+                'description' => $education->description,
+                'start_date' => $education->start_date,
+                'end_date' => $education->end_date,
+                'is_current' => $education->is_current,
+                'field_of_study' => $education->field_of_study,
+                'grade' => $education->grade,
+                'created_at' => $education->created_at,
+                'updated_at' => $education->updated_at,
+            ];
+        });
+
         return Inertia::render('Portfolio/Show', [
             'user' => $user,
             'projects' => $transformedProjects,
+            'experience' => $transformedExperience,
+            'education' => $transformedEducation,
             'username' => $decodedUsername
         ]);
     }

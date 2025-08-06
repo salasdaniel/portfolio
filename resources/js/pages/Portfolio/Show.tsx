@@ -59,6 +59,34 @@ interface User {
     }>;
 }
 
+interface Experience {
+    id: number;
+    position: string;
+    company: string;
+    description?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    location?: string;
+    employment_type?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+interface Education {
+    id: number;
+    degree: string;
+    institution: string;
+    description?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    field_of_study?: string;
+    grade?: string;
+    created_at: string;
+    updated_at: string;
+}
+
 interface Project {
     id: number;
     title: string;
@@ -88,10 +116,12 @@ interface Project {
 interface Props {
     user: User;
     projects: Project[];
+    experience: Experience[];
+    education: Education[];
     username: string;
 }
 
-export default function Show({ user, projects }: Props) {
+export default function Show({ user, projects, experience, education }: Props) {
     const [activeSection, setActiveSection] = useState('about');
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -365,7 +395,9 @@ export default function Show({ user, projects }: Props) {
                     <div className="mb-8 relative z-10">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                                {activeSection === 'about' ? 'About Me' : 'My Projects'}
+                                {activeSection === 'about' ? 'About Me' : 
+                                 activeSection === 'projects' ? 'My Projects' :
+                                 activeSection === 'resume' ? 'Resume' : 'About Me'}
                             </h2>
                             <nav className="flex space-x-8">
                                 <button
@@ -393,6 +425,19 @@ export default function Show({ user, projects }: Props) {
                                     }}
                                 >
                                     Projects
+                                </button>
+                                <button
+                                    onClick={() => setActiveSection('resume')}
+                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'resume'
+                                            ? 'border-b-2'
+                                            : 'hover:opacity-80 hover:text-orange-400'
+                                        }`}
+                                    style={{
+                                        borderColor: activeSection === 'resume' ? '#1db954ff' : 'transparent',
+                                        color: activeSection === 'resume' ? '#ffffff' : '#888888'
+                                    }}
+                                >
+                                    Resume
                                 </button>
                                 
                                 <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
@@ -586,6 +631,173 @@ export default function Show({ user, projects }: Props) {
                                 </div>
                             )}
                         </>
+                    ) : activeSection === 'resume' ? (
+                        /* Resume Section - Experience and Education Combined */
+                        <div className="mb-12 relative z-10">
+                            <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
+                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                {/* Work Experience Section */}
+                                <div className="mb-8">
+                                    <div className="flex items-center mb-8">
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4" >
+                                            <svg className="w-10 h-10" fill="#ffffffff" viewBox="0 0 24 24">
+                                                <path d="M20 6h-2V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM8 4h8v2H8V4zm12 15H4V8h16v11z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-3xl font-bold " style={{ color: '#ffffff' }}>
+                                            Experience
+                                        </h3>
+                                    </div>
+                                    
+                                    {experience && experience.length > 0 ? (
+                                        <div className="relative">
+                                            {/* Timeline line */}
+                                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
+                                            
+                                            <div className="space-y-8">
+                                                {experience.map((exp, index) => (
+                                                    <div key={exp.id} className="relative pl-12">
+                                                        {/* Timeline dot */}
+                                                        <div 
+                                                            className="absolute left-2.5 w-3 h-3 rounded-full  border-gray-600" 
+                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                        ></div>
+                                                        
+                                                        <div className="">
+                                                            <h4 className="text-2xl mb-2 " style={{ color: '#ffffff' }}>
+                                                                {exp.position}
+                                                            </h4>
+                                                            <h5 className="text-base " style={{ color: '#cccccc' }}>
+                                                                {exp.company}
+                                                            </h5>
+                                                            <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
+                                                                <span style={{ color: '#1db954ff' }}>
+                                                                    {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} — {' '}
+                                                                    {exp.is_current ? 'Present' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present'}
+                                                                </span>
+                                                                {exp.location && (
+                                                                    <span>📍 {exp.location}</span>
+                                                                )}
+                                                                {exp.employment_type && (
+                                                                    <span className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#1a1a1a' }}>
+                                                                        {exp.employment_type}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {exp.description && (
+                                                                <div className="">
+                                                                    {exp.description.split('\n').map((line, lineIndex) => {
+                                                                        if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+                                                                            return (
+                                                                                <div key={lineIndex} className="flex items-start ">
+                                                                                    <span className="mr-2 mt-1" style={{ color: '#1db954ff' }}>●</span>
+                                                                                    <span className="text-sm leading-relaxed" style={{ color: '#cccccc' }}>
+                                                                                        {line.replace(/^[•-]\s*/, '')}
+                                                                                    </span>
+                                                                                </div>
+                                                                            );
+                                                                        } else if (line.trim()) {
+                                                                            return (
+                                                                                <p key={lineIndex} className="text-sm leading-relaxed " style={{ color: '#cccccc' }}>
+                                                                                    {line}
+                                                                                </p>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#888888' }}>
+                                                <path d="M20 6h-2V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM8 4h8v2H8V4zm12 15H4V8h16v11z" />
+                                            </svg>
+                                            <p className="text-sm" style={{ color: '#888888' }}>
+                                                No work experience records yet
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Education Section */}
+                                <div className="mb-2">
+                                    <div className="flex items-center  mb-8">
+                                           <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4" >
+                                            <svg className="w-10 h-10" fill="#ffffffff" viewBox="0 0 24 24">
+                                                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-3xl font-bold " style={{ color: '#ffffff' }}>
+                                            Education
+                                        </h3>
+                                    </div>
+                                    
+                                    {education && education.length > 0 ? (
+                                        <div className="relative">
+                                            {/* Timeline line */}
+                                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
+                                            
+                                            <div className="space-y-8">
+                                                {education.map((edu, index) => (
+                                                    <div key={edu.id} className="relative pl-12">
+                                                        {/* Timeline dot */}
+                                                        <div 
+                                                            className="absolute left-2.5 w-3 h-3 rounded-full " 
+                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                        ></div>
+                                                        
+                                                        <div className="">
+                                                            <h4 className="text-2xl mb-2" style={{ color: '#ffffff' }}>
+                                                                {edu.degree}
+                                                            </h4>
+                                                            <h5 className="text-base " style={{ color: '#cccccc' }}>
+                                                                {edu.institution}
+                                                            </h5>
+                                                            <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
+                                                                <span style={{ color: '#1db954ff' }}>
+                                                                    {new Date(edu.start_date).toLocaleDateString('en-US', { year: 'numeric' })} — {' '}
+                                                                    {edu.is_current ? 'Present' : edu.end_date ? new Date(edu.end_date).toLocaleDateString('en-US', { year: 'numeric' }) : 'Present'}
+                                                                </span>
+                                                                {edu.field_of_study && (
+                                                                    <span>📚 {edu.field_of_study}</span>
+                                                                )}
+                                                                {edu.grade && (
+                                                                    <span className="px-2 py-1 text-xs rounded" style={{ backgroundColor: '#1a1a1a' }}>
+                                                                        {edu.grade}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {edu.description && (
+                                                                <p className="text-sm leading-relaxed" style={{ color: '#cccccc' }}>
+                                                                    {edu.description}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#888888' }}>
+                                                <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+                                            </svg>
+                                            <p className="text-sm" style={{ color: '#888888' }}>
+                                                No education records yet
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         /* Projects Section */
                         <div className="mb-12 relative z-10">
