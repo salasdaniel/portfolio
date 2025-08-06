@@ -143,7 +143,7 @@ export default function Show({ user, projects }: Props) {
     const getFilteredProjects = () => {
         if (!projects) return [];
         
-        return projects.filter(project => {
+        const filtered = projects.filter(project => {
             const languageMatch = selectedLanguage === 'all' || 
                 project.programming_languages?.includes(selectedLanguage);
             
@@ -154,6 +154,24 @@ export default function Show({ user, projects }: Props) {
                 project.database === selectedDatabase;
             
             return languageMatch && frameworkMatch && databaseMatch;
+        });
+
+        // Sort projects: pinned first by pin_order, then non-pinned
+        return filtered.sort((a, b) => {
+            // If both are pinned, sort by pin_order
+            if (a.is_pinned && b.is_pinned) {
+                return (a.pin_order || 0) - (b.pin_order || 0);
+            }
+            // If only a is pinned, a comes first
+            if (a.is_pinned && !b.is_pinned) {
+                return -1;
+            }
+            // If only b is pinned, b comes first
+            if (!a.is_pinned && b.is_pinned) {
+                return 1;
+            }
+            // If neither is pinned, maintain original order
+            return 0;
         });
     };
 
@@ -376,9 +394,7 @@ export default function Show({ user, projects }: Props) {
                                 >
                                     Projects
                                 </button>
-                                <a href="#portfolio" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                    Portfolio
-                                </a>
+                                
                                 <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                     Blog
                                 </a>
@@ -578,7 +594,7 @@ export default function Show({ user, projects }: Props) {
                             </div>
 
                             {/* Filters */}
-                            <div className="mb-8 bg-gray-800 p-4 rounded-lg shadow-sm" style={{ backgroundColor: 'transparent' }}>
+                            <div className=" bg-gray-800 pb-4 rounded-lg shadow-sm" style={{ backgroundColor: 'transparent' }}>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Language Filter */}
                                     <div className="space-y-2">
@@ -620,7 +636,7 @@ export default function Show({ user, projects }: Props) {
 
                                 {/* Active Filters and Clear Button */}
                                 {(selectedLanguage !== 'all' || selectedFramework !== 'all' || selectedDatabase !== 'all') && (
-                                    <div className="mt-4 pt-2">
+                                    <div className=" pt-2">
                                         <div className="flex flex-wrap items-center gap-2 justify-between">
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedLanguage !== 'all' && (
