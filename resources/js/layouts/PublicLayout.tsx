@@ -26,15 +26,8 @@ export default function PublicLayout({ children, title = 'DevPortfolio' }: Publi
 
                             {/* Navigation */}
                             <div className="hidden md:flex items-center space-x-8">
-                                <a 
-                                    href={route('home')} 
-                                    className="transition-colors duration-200 hover:opacity-80"
-                                    style={{ color: '#b3b3b3' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#1db954'}
-                                    onMouseLeave={(e) => e.currentTarget.style.color = '#b3b3b3'}
-                                >
-                                    Home
-                                </a>
+                             
+                                
                                 <a 
                                     href={route('login')} 
                                     className="transition-colors duration-200 hover:opacity-80"

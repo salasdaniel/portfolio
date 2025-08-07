@@ -56,7 +56,7 @@ export default function Welcome() {
                 {/* Single Center Panel */}
                 <div className="w-full max-w-md px-8">
                     <div className="text-center mb-12">
-                        <h1 className="text-4xl font-bold mb-4" style={{ color: '#b3b3b3' }}>
+                        <h1 className="text-4xl font-bold mb-4" style={{ color: '#ffffff' }}>
                             Find Your Next
                         </h1>
                         <h2 className="text-5xl font-bold mb-6" style={{ color: '#1db954' }}>

@@ -5,7 +5,6 @@ use App\Http\Controllers\ExperienceController;
 use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PortfolioController;
-use App\Http\Controllers\ContactController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,7 +14,6 @@ require __DIR__.'/auth.php';
 // Public routes - accessible without authentication
 Route::get('/', [PortfolioController::class, 'welcome'])->name('home');
 Route::get('/search-users', [PortfolioController::class, 'searchUsers'])->name('search.users');
-Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
