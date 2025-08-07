@@ -1,5 +1,7 @@
 import { SearchableSelectFieldDark } from '@/components/ui/searchable-select-field-dark';
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
+
 
 interface User {
     id: number;
@@ -12,6 +14,7 @@ interface User {
     linkedin_url?: string;
     github_url?: string;
     profile_image?: string;
+    cv_file?: string;
     description?: string;
     education?: Array<{
         degree?: string;
@@ -87,6 +90,20 @@ interface Education {
     updated_at: string;
 }
 
+interface Certification {
+    id: number;
+    institution: string;
+    field_of_study?: string;
+    description?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    certification_url?: string;
+    pin_order?: number;
+    created_at: string;
+    updated_at: string;
+}
+
 interface Project {
     id: number;
     title: string;
@@ -118,14 +135,15 @@ interface Props {
     projects: Project[];
     experience: Experience[];
     education: Education[];
+    certifications: Certification[];
     username: string;
 }
 
-export default function Show({ user, projects, experience, education }: Props) {
+export default function Show({ user, projects, experience, education, certifications }: Props) {
     const [activeSection, setActiveSection] = useState('about');
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     // Filter states
     const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
     const [selectedFramework, setSelectedFramework] = useState<string>('all');
@@ -172,17 +190,17 @@ export default function Show({ user, projects, experience, education }: Props) {
     // Filter projects based on selected filters
     const getFilteredProjects = () => {
         if (!projects) return [];
-        
+
         const filtered = projects.filter(project => {
-            const languageMatch = selectedLanguage === 'all' || 
+            const languageMatch = selectedLanguage === 'all' ||
                 project.programming_languages?.includes(selectedLanguage);
-            
-            const frameworkMatch = selectedFramework === 'all' || 
+
+            const frameworkMatch = selectedFramework === 'all' ||
                 project.frameworks?.includes(selectedFramework);
-            
-            const databaseMatch = selectedDatabase === 'all' || 
+
+            const databaseMatch = selectedDatabase === 'all' ||
                 project.database === selectedDatabase;
-            
+
             return languageMatch && frameworkMatch && databaseMatch;
         });
 
@@ -392,19 +410,19 @@ export default function Show({ user, projects, experience, education }: Props) {
                     }}></div>
 
                     {/* Navigation Tabs */}
-                    <div className="mb-8 relative z-10">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className=" relative z-10">
+                        <div className="flex items-center justify-between">
                             <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
-                                {activeSection === 'about' ? 'About Me' : 
-                                 activeSection === 'projects' ? 'My Projects' :
-                                 activeSection === 'resume' ? 'Resume' : 'About Me'}
+                                {activeSection === 'about' ? 'About Me' :
+                                    activeSection === 'projects' ? 'My Projects' :
+                                        activeSection === 'resume' ? 'Resume' : 'About Me'}
                             </h2>
                             <nav className="flex space-x-8">
                                 <button
                                     onClick={() => setActiveSection('about')}
                                     className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'about'
-                                            ? 'border-b-2'
-                                            : 'hover:opacity-80 hover:text-orange-400'
+                                        ? 'border-b-2'
+                                        : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
                                         borderColor: activeSection === 'about' ? '#1db954ff' : 'transparent',
@@ -416,8 +434,8 @@ export default function Show({ user, projects, experience, education }: Props) {
                                 <button
                                     onClick={() => setActiveSection('projects')}
                                     className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'projects'
-                                            ? 'border-b-2'
-                                            : 'hover:opacity-80 hover:text-orange-400'
+                                        ? 'border-b-2'
+                                        : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
                                         borderColor: activeSection === 'projects' ? '#1db954ff' : 'transparent',
@@ -429,8 +447,8 @@ export default function Show({ user, projects, experience, education }: Props) {
                                 <button
                                     onClick={() => setActiveSection('resume')}
                                     className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'resume'
-                                            ? 'border-b-2'
-                                            : 'hover:opacity-80 hover:text-orange-400'
+                                        ? 'border-b-2'
+                                        : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
                                         borderColor: activeSection === 'resume' ? '#1db954ff' : 'transparent',
@@ -439,13 +457,15 @@ export default function Show({ user, projects, experience, education }: Props) {
                                 >
                                     Resume
                                 </button>
-                                
-                                <a href="#blog" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
-                                    Blog
-                                </a>
+
                                 <a href="#contact" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                     Contact
                                 </a>
+                                <a onClick={() => router.visit('/')} className="py-4 px-2 font-medium hover:cursor-pointer text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                    Exit
+                                </a>
+
+                                
                             </nav>
                         </div>
                     </div>
@@ -468,7 +488,7 @@ export default function Show({ user, projects, experience, education }: Props) {
 
                             {/* What I'm Doing Section */}
                             <div className="mb-12">
-                                <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
                                     What I'm Doing
                                 </h2>
                                 <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
@@ -540,7 +560,7 @@ export default function Show({ user, projects, experience, education }: Props) {
                             {/* Stack Section */}
                             {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
                                 <div className="mb-12">
-                                    <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                    <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
                                         Stack
                                     </h2>
                                     <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
@@ -601,7 +621,7 @@ export default function Show({ user, projects, experience, education }: Props) {
                             {/* Other Technologies Section */}
                             {user.other_technologies?.length && (
                                 <div className="mb-12">
-                                    <h2 className="text-3xl font-bold mb-6" style={{ color: '#ffffff' }}>
+                                    <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
                                         Other Technologies
                                     </h2>
                                     <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
@@ -638,6 +658,29 @@ export default function Show({ user, projects, experience, education }: Props) {
                                 <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                             </div>
 
+                            {/* Download CV Button */}
+                            {user.cv_file && (
+                                <div className="mb-8 flex justify-right">
+                                    <a
+                                        href={`/storage/${user.cv_file}`}
+                                        download
+                                        className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-medium text-lg transition-all duration-300 hover:scale-105 "
+                                        style={{
+                                            backgroundColor: '#1db954ff',
+                                            color: '#121212',
+                                            background: 'linear-gradient(135deg, #1db954 0%, #17a844 50%, #1db954 100%)',
+                                           
+                                        }}
+                                    >
+                                        
+                                        <span className="transition-all duration-300 group-hover:tracking-wide">Download CV</span>
+                                        <svg className="w-5 h-5 transition-transform duration-300 " fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12,16L16,12H13V4H11V12H8L12,16M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2Z" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 {/* Work Experience Section */}
                                 <div className="mb-8">
@@ -650,22 +693,23 @@ export default function Show({ user, projects, experience, education }: Props) {
                                         <h3 className="text-3xl font-bold " style={{ color: '#ffffff' }}>
                                             Experience
                                         </h3>
+
                                     </div>
-                                    
+
                                     {experience && experience.length > 0 ? (
                                         <div className="relative">
                                             {/* Timeline line */}
                                             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
-                                            
+
                                             <div className="space-y-8">
                                                 {experience.map((exp, index) => (
                                                     <div key={exp.id} className="relative pl-12">
                                                         {/* Timeline dot */}
-                                                        <div 
-                                                            className="absolute left-2.5 w-3 h-3 rounded-full  border-gray-600" 
+                                                        <div
+                                                            className="absolute left-2.5 w-3 h-3 rounded-full  border-gray-600"
                                                             style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
                                                         ></div>
-                                                        
+
                                                         <div className="">
                                                             <h4 className="text-2xl mb-2 " style={{ color: '#ffffff' }}>
                                                                 {exp.position}
@@ -727,10 +771,80 @@ export default function Show({ user, projects, experience, education }: Props) {
                                     )}
                                 </div>
 
+
+
+                                {/* Certifications Section */}
+                                <div className="mb-8">
+                                    <div className="flex items-center mb-8">
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4" >
+                                            <svg className="w-10 h-10" fill="#ffffffff" viewBox="0 0 24 24">
+                                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-3xl font-bold " style={{ color: '#ffffff' }}>
+                                            Certifications
+                                        </h3>
+                                    </div>
+
+                                    {certifications && certifications.length > 0 ? (
+                                        <div className="relative">
+                                            {/* Timeline line */}
+                                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
+
+                                            <div className="space-y-8">
+                                                {certifications.map((cert, index) => (
+                                                    <div key={cert.id} className="relative pl-12">
+                                                        {/* Timeline dot */}
+                                                        <div
+                                                            className="absolute left-2.5 w-3 h-3 rounded-full "
+                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                        ></div>
+
+                                                        <div className="">
+                                                            <h4 className="text-2xl mb-2" style={{ color: '#ffffff' }}>
+                                                                {cert.field_of_study || 'Certification'}
+                                                            </h4>
+                                                            <h5 className="text-base " style={{ color: '#cccccc' }}>
+                                                                {cert.institution}
+                                                            </h5>
+                                                            <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
+                                                                <span style={{ color: '#1db954ff' }}>
+                                                                    {new Date(cert.start_date).toLocaleDateString('en-US', { year: 'numeric' })} — {' '}
+                                                                    {cert.is_current ? 'Present' : cert.end_date ? new Date(cert.end_date).toLocaleDateString('en-US', { year: 'numeric' }) : 'Present'}
+                                                                </span>
+                                                                {cert.certification_url && (
+                                                                    <a href={cert.certification_url} target="_blank" rel="noopener noreferrer"
+                                                                        className="px-2 py-1 text-xs rounded underline hover:text-green-400" style={{ backgroundColor: '#1a1a1a' }}>
+                                                                        🏆 View Certificate
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            {cert.description && (
+                                                                <p className="text-sm leading-relaxed" style={{ color: '#cccccc' }}>
+                                                                    {cert.description}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <svg className="w-12 h-12 mx-auto mb-3 opacity-30" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#888888' }}>
+                                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p className="text-sm" style={{ color: '#888888' }}>
+                                                No certifications yet
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
                                 {/* Education Section */}
                                 <div className="mb-2">
                                     <div className="flex items-center  mb-8">
-                                           <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4" >
+                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center mr-4" >
                                             <svg className="w-10 h-10" fill="#ffffffff" viewBox="0 0 24 24">
                                                 <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
                                             </svg>
@@ -739,21 +853,21 @@ export default function Show({ user, projects, experience, education }: Props) {
                                             Education
                                         </h3>
                                     </div>
-                                    
+
                                     {education && education.length > 0 ? (
                                         <div className="relative">
                                             {/* Timeline line */}
                                             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-600"></div>
-                                            
+
                                             <div className="space-y-8">
                                                 {education.map((edu, index) => (
                                                     <div key={edu.id} className="relative pl-12">
                                                         {/* Timeline dot */}
-                                                        <div 
-                                                            className="absolute left-2.5 w-3 h-3 rounded-full " 
+                                                        <div
+                                                            className="absolute left-2.5 w-3 h-3 rounded-full "
                                                             style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
                                                         ></div>
-                                                        
+
                                                         <div className="">
                                                             <h4 className="text-2xl mb-2" style={{ color: '#ffffff' }}>
                                                                 {edu.degree}
@@ -817,7 +931,7 @@ export default function Show({ user, projects, experience, education }: Props) {
                                             onValueChange={(value) => setSelectedLanguage(value || 'all')}
                                             placeholder="All languages"
                                             searchPlaceholder="Search languages..."
-                                          
+
                                         />
                                     </div>
 
@@ -938,10 +1052,10 @@ export default function Show({ user, projects, experience, education }: Props) {
                                                 {/* Status Badge */}
                                                 <div className="absolute top-4 right-4 z-10">
                                                     <span className={`px-3 py-1 text-xs rounded-full font-medium ${project.status === 'Completed'
-                                                            ? 'bg-green-500 text-white'
-                                                            : project.status === 'In Progress'
-                                                                ? 'bg-yellow-500 text-white'
-                                                                : 'bg-gray-500 text-white'
+                                                        ? 'bg-green-500 text-white'
+                                                        : project.status === 'In Progress'
+                                                            ? 'bg-yellow-500 text-white'
+                                                            : 'bg-gray-500 text-white'
                                                         }`}>
                                                         {project.status}
                                                     </span>
@@ -1111,20 +1225,20 @@ export default function Show({ user, projects, experience, education }: Props) {
                                     {selectedProject.status && (
                                         <div className="flex items-center">
                                             <span className={`px-4 py-2 rounded-full text-sm font-medium  ${selectedProject.status.toLowerCase() === 'completed' ||
-                                                    selectedProject.status.toLowerCase() === 'completado' ||
-                                                    selectedProject.status.toLowerCase() === 'finalizado'
-                                                    ? 'bg-green-500 text-white border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700'
-                                                    : selectedProject.status.toLowerCase() === 'in progress' ||
-                                                        selectedProject.status.toLowerCase() === 'en progreso' ||
-                                                        selectedProject.status.toLowerCase() === 'desarrollo'
-                                                        ? 'bg-blue-500 text-white border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700'
-                                                        : selectedProject.status.toLowerCase() === 'paused' ||
-                                                            selectedProject.status.toLowerCase() === 'pausado'
-                                                            ? 'bg-yellow-500 text-white border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700'
-                                                            : selectedProject.status.toLowerCase() === 'cancelled' ||
-                                                                selectedProject.status.toLowerCase() === 'cancelado'
-                                                                ? 'bg-red-500 text-white border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
-                                                                : 'bg-gray-500 text-white border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
+                                                selectedProject.status.toLowerCase() === 'completado' ||
+                                                selectedProject.status.toLowerCase() === 'finalizado'
+                                                ? 'bg-green-500 text-white border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700'
+                                                : selectedProject.status.toLowerCase() === 'in progress' ||
+                                                    selectedProject.status.toLowerCase() === 'en progreso' ||
+                                                    selectedProject.status.toLowerCase() === 'desarrollo'
+                                                    ? 'bg-blue-500 text-white border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700'
+                                                    : selectedProject.status.toLowerCase() === 'paused' ||
+                                                        selectedProject.status.toLowerCase() === 'pausado'
+                                                        ? 'bg-yellow-500 text-white border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700'
+                                                        : selectedProject.status.toLowerCase() === 'cancelled' ||
+                                                            selectedProject.status.toLowerCase() === 'cancelado'
+                                                            ? 'bg-red-500 text-white border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
+                                                            : 'bg-gray-500 text-white border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600'
                                                 }`}>
                                                 {selectedProject.status}
                                             </span>
@@ -1194,7 +1308,7 @@ export default function Show({ user, projects, experience, education }: Props) {
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-all duration-300 hover:scale-105 text-white hover:opacity-90"
                                             style={{ backgroundColor: '#121212' }}
-                                      
+
                                         >
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />

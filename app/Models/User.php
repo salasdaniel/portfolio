@@ -100,6 +100,11 @@ class User extends Authenticatable
         return $this->hasMany(UserExperience::class)->orderBy('sort_order')->orderBy('start_date', 'desc');
     }
 
+    public function certifications()
+    {
+        return $this->hasMany(UserCertification::class)->orderBy('sort_order')->orderBy('start_date', 'desc');
+    }
+
     public function skills()
     {
         return $this->hasMany(UserSkill::class)->orderBy('sort_order');

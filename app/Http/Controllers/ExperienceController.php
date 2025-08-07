@@ -24,6 +24,9 @@ class ExperienceController extends Controller
             'education', 
             'experience', 
             'skills',
+            'certifications' => function($query) {
+                $query->orderBy('pin_order', 'asc');
+            },
             'programmingLanguageSkills',
             'databaseSkills',
             'frameworkSkills',

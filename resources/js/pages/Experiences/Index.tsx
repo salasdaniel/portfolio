@@ -47,6 +47,19 @@ interface UserEducation {
     sort_order: number;
 }
 
+interface UserCertification {
+    id?: number;
+    institution: string;
+    field_of_study?: string;
+    start_date: string;
+    end_date?: string;
+    is_current: boolean;
+    description?: string;
+    certification_url?: string;
+    sort_order: number;
+    pin_order?: number;
+}
+
 interface UserExperience {
     id?: number;
     position: string;
@@ -92,6 +105,7 @@ interface User {
     education?: UserEducation[];
     experience?: UserExperience[];
     skills?: UserSkill[];
+    certifications?: UserCertification[];
     programming_language_skills?: Array<{
         id: number;
         name: string;
@@ -137,12 +151,15 @@ export default function Index({ user, programmingLanguages = [], databases = [],
     const [educationList, setEducationList] = useState<UserEducation[]>([]);
     const [experienceList, setExperienceList] = useState<UserExperience[]>([]);
     const [skillsList, setSkillsList] = useState<UserSkill[]>([]);
+    const [certificationList, setCertificationList] = useState<UserCertification[]>([]);
     const [savedEducations, setSavedEducations] = useState<UserEducation[]>(user.education || []);
     const [savedExperiences, setSavedExperiences] = useState<UserExperience[]>(user.experience || []);
     const [savedSkills, setSavedSkills] = useState<UserSkill[]>(user.skills || []);
+    const [savedCertifications, setSavedCertifications] = useState<UserCertification[]>(user.certifications || []);
     const [savingEducation, setSavingEducation] = useState<number | null>(null);
     const [savingExperience, setSavingExperience] = useState<number | null>(null);
     const [savingSkill, setSavingSkill] = useState<number | null>(null);
+    const [savingCertification, setSavingCertification] = useState<number | null>(null);
 
     // Estados para tecnologías
     const [selectedProgrammingLanguages, setSelectedProgrammingLanguages] = useState<number[]>(
@@ -169,13 +186,11 @@ export default function Index({ user, programmingLanguages = [], databases = [],
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
     
-    // Estados para procesamiento y archivos
-    const [processing, setProcessing] = useState(false);
-    
     // Confirmation dialog states
     const [deleteEducationId, setDeleteEducationId] = useState<number | null>(null);
     const [deleteExperienceId, setDeleteExperienceId] = useState<number | null>(null);
     const [deleteSkillId, setDeleteSkillId] = useState<number | null>(null);
+    const [deleteCertificationId, setDeleteCertificationId] = useState<number | null>(null);
     const [cvFile, setCvFile] = useState<File | null>(null);
     const [cvFileName, setCvFileName] = useState<string | null>(
         user.cv_file ? user.cv_file.split('/').pop() || null : null
@@ -354,6 +369,68 @@ export default function Index({ user, programmingLanguages = [], databases = [],
         setSkillsList(updated);
     };
 
+    // Certification functions
+    const addCertification = () => {
+        const newCertification: UserCertification = {
+            institution: '',
+            field_of_study: '',
+            start_date: '',
+            end_date: '',
+            is_current: false,
+            description: '',
+            certification_url: '',
+            sort_order: certificationList.length,
+            pin_order: certificationList.length + 1,
+        };
+        setCertificationList([...certificationList, newCertification]);
+    };
+
+    const removeCertification = (index: number) => {
+        const updated = certificationList.filter((_, i) => i !== index);
+        setCertificationList(updated);
+    };
+
+    const editCertification = (savedIndex: number) => {
+        // Move the saved certification record back to the edit form
+        const certificationToEdit = savedCertifications[savedIndex];
+        if (certificationToEdit) {
+            // Add to the certification list for editing
+            setCertificationList([...certificationList, certificationToEdit]);
+            // Remove from saved list
+            setSavedCertifications(savedCertifications.filter((_, i) => i !== savedIndex));
+        }
+    };
+
+    const updateCertification = (index: number, field: keyof UserCertification, value: string | boolean | number) => {
+        const updated = certificationList.map((cert, i) => {
+            if (i === index) {
+                const updatedCert = { ...cert, [field]: value };
+                // If setting is_current to true, clear end_date
+                if (field === 'is_current' && value === true) {
+                    updatedCert.end_date = '';
+                }
+                return updatedCert;
+            }
+            return cert;
+        });
+        setCertificationList(updated);
+    };
+
+    const handleCertificationCurrentChange = (index: number, isChecked: boolean) => {
+        const updated = certificationList.map((cert, i) => {
+            if (i === index) {
+                const result = {
+                    ...cert,
+                    is_current: isChecked,
+                    end_date: isChecked ? '' : cert.end_date
+                };
+                return result;
+            }
+            return cert;
+        });
+        setCertificationList(updated);
+    };
+
     const saveEducation = (index: number) => {
         const education = educationList[index];
         setSavingEducation(index);
@@ -519,9 +596,61 @@ export default function Index({ user, programmingLanguages = [], databases = [],
         });
     };
 
+    const saveCertification = (index: number) => {
+        const certification = certificationList[index];
+        setSavingCertification(index);
+        
+        const formData = new FormData();
+        if (certification.id) formData.append('id', certification.id.toString());
+        formData.append('institution', certification.institution);
+        if (certification.field_of_study) formData.append('field_of_study', certification.field_of_study);
+        formData.append('start_date', certification.start_date);
+        if (certification.end_date && !certification.is_current) formData.append('end_date', certification.end_date);
+        formData.append('is_current', certification.is_current ? 'true' : 'false');
+        if (certification.description) formData.append('description', certification.description);
+        if (certification.certification_url) formData.append('certification_url', certification.certification_url);
+        formData.append('sort_order', certification.sort_order.toString());
+        if (certification.pin_order !== undefined && certification.pin_order !== null) {
+            formData.append('pin_order', certification.pin_order.toString());
+        }
+
+        fetch('/experiences/certification', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            setSavingCertification(null);
+            
+            // Always add the updated/new record to saved certifications
+            // If it was an edit, the record was already removed from savedCertifications
+            setSavedCertifications([...savedCertifications, data.certification]);
+            
+            // Remove from form list
+            const updated = certificationList.filter((_, i) => i !== index);
+            setCertificationList(updated);
+            
+            setSuccess('Certification saved successfully');
+            setTimeout(() => setSuccess(''), 3000);
+        })
+        .catch(error => {
+            console.error('Error saving certification:', error);
+            setSavingCertification(null);
+            setError('Error saving certification record. Please try again.');
+            setTimeout(() => setError(''), 5000);
+        });
+    };
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        setProcessing(true);
         
         // Use fetch for the full form submission since we need to handle files and arrays
         const formData = new FormData();
@@ -533,6 +662,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
         formData.append('education', JSON.stringify(educationList));
         formData.append('experience', JSON.stringify(experienceList));
         formData.append('skills', JSON.stringify(skillsList));
+        formData.append('certifications', JSON.stringify(certificationList));
 
         fetch('/experiences', {
             method: 'POST',
@@ -542,13 +672,12 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             },
         })
         .then(() => {
-            setProcessing(false);
             setSuccess('Cambios guardados exitosamente');
             setTimeout(() => setSuccess(''), 3000);
             window.location.reload();
         })
         .catch(() => {
-            setProcessing(false);
+            // Handle error if needed
         });
     };
 
@@ -627,6 +756,32 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             setTimeout(() => setError(''), 5000);
         } finally {
             setDeleteSkillId(null);
+        }
+    };
+
+    const deleteCertification = async (id: number) => {
+        try {
+            const response = await fetch(route('certification.destroy', id), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            });
+
+            if (response.ok) {
+                setSavedCertifications(savedCertifications.filter(cert => cert.id !== id));
+                setSuccess('Certification deleted successfully');
+                setTimeout(() => setSuccess(''), 3000);
+            } else {
+                setError('Error deleting certification');
+                setTimeout(() => setError(''), 5000);
+            }
+        } catch (error) {
+            console.error('Error deleting certification:', error);
+            setError('Error deleting certification');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setDeleteCertificationId(null);
         }
     };
 
@@ -1437,6 +1592,208 @@ export default function Index({ user, programmingLanguages = [], databases = [],
                                 </div>
                             )}
 
+                            {/* Certifications Section */}
+                            <div className="space-y-6 pt-6 border-t">
+                                <div className="flex items-center justify-between">
+                                    <HeadingSmall title="Certifications" />
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        size="sm"
+                                        onClick={addCertification}
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Certification
+                                    </Button>
+                                </div>
+                                
+                                {(certificationList.length === 0 && savedCertifications.length === 0) && (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <p>No certifications added yet.</p>
+                                        <p className="text-sm">Click "Add Certification" to get started.</p>
+                                    </div>
+                                )}
+                                
+                                {certificationList.map((cert, index) => (
+                                    <div key={index} className="p-4 border rounded-lg space-y-4 bg-muted/20">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="font-medium">Certification {index + 1}</h4>
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => saveCertification(index)}
+                                                    disabled={savingCertification === index}
+                                                >
+                                                    <Save className="h-4 w-4 mr-2" />
+                                                    {savingCertification === index ? 'Saving...' : 'Save'}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => removeCertification(index)}
+                                                    className="text-destructive hover:text-destructive"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Institution *</Label>
+                                                <Input
+                                                    value={cert.institution}
+                                                    onChange={(e) => updateCertification(index, 'institution', e.target.value)}
+                                                    placeholder="Certification Provider"
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Field of Study</Label>
+                                                <Input
+                                                    value={cert.field_of_study || ''}
+                                                    onChange={(e) => updateCertification(index, 'field_of_study', e.target.value)}
+                                                    placeholder="e.g., Information Technology"
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Start Date *</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={cert.start_date}
+                                                    onChange={(e) => updateCertification(index, 'start_date', e.target.value)}
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>End Date</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={cert.end_date || ''}
+                                                    onChange={(e) => updateCertification(index, 'end_date', e.target.value)}
+                                                    disabled={cert.is_current}
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Certification URL</Label>
+                                                <Input
+                                                    value={cert.certification_url || ''}
+                                                    onChange={(e) => updateCertification(index, 'certification_url', e.target.value)}
+                                                    placeholder="https://..."
+                                                    type="url"
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label>Pin Order</Label>
+                                                <Input
+                                                    value={cert.pin_order || ''}
+                                                    onChange={(e) => updateCertification(index, 'pin_order', parseInt(e.target.value) || 0)}
+                                                    placeholder="Order number"
+                                                    type="number"
+                                                    min="1"
+                                                />
+                                            </div>
+                                            
+                                            <div className="space-y-2 flex items-center">
+                                                <Checkbox
+                                                    id={`certification-current-${index}`}
+                                                    checked={cert.is_current}
+                                                    onCheckedChange={(checked) => {
+                                                        handleCertificationCurrentChange(index, checked === true);
+                                                    }}
+                                                />
+                                                <Label htmlFor={`certification-current-${index}`} className="ml-2">Currently pursuing</Label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            <Label>Description</Label>
+                                            <Textarea
+                                                value={cert.description || ''}
+                                                onChange={(e) => updateCertification(index, 'description', e.target.value)}
+                                                placeholder="Key skills learned, certificate details..."
+                                                rows={3}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Saved Certifications Table */}
+                            {savedCertifications.length > 0 && (
+                                <div className="space-y-4">
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <table className="w-full">
+                                            <thead className="bg-muted/50">
+                                                <tr>
+                                                    <th className="text-left p-4 font-medium">Institution</th>
+                                                    <th className="text-left p-4 font-medium">Field</th>
+                                                    <th className="text-left p-4 font-medium">Period</th>
+                                                    <th className="text-left p-4 font-medium">Certificate</th>
+                                                    <th className="text-left p-4 font-medium">Pin Order</th>
+                                                    <th className="text-left p-4 font-medium">Status</th>
+                                                    <th className="text-left p-4 font-medium">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {savedCertifications.map((cert, index) => (
+                                                    <tr key={cert.id || index} className="border-t">
+                                                        <td className="p-4 font-medium">{cert.institution}</td>
+                                                        <td className="p-4">{cert.field_of_study || '-'}</td>
+                                                        <td className="p-4 text-sm text-muted-foreground">
+                                                            {formatDate(cert.start_date)} - {cert.is_current ? 'Present' : (cert.end_date ? formatDate(cert.end_date) : 'N/A')}
+                                                        </td>
+                                                        <td className="p-4">
+                                                            {cert.certification_url ? (
+                                                                <a href={cert.certification_url} target="_blank" rel="noopener noreferrer" 
+                                                                   className="text-blue-600 hover:text-blue-800 underline">
+                                                                    View Certificate
+                                                                </a>
+                                                            ) : '-'}
+                                                        </td>
+                                                        <td className="p-4">{cert.pin_order || '-'}</td>
+                                                        <td className="p-4">
+                                                            <span className={`px-2 py-1 text-xs rounded-full ${cert.is_current ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                                                                {cert.is_current ? 'Pursuing' : 'Completed'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => editCertification(index)}
+                                                                >
+                                                                    <Edit2 className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="text-destructive hover:text-destructive"
+                                                                    onClick={() => cert.id && setDeleteCertificationId(cert.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
                         </form>
                     </div>
                 </div>
@@ -1498,6 +1855,26 @@ export default function Index({ user, programmingLanguages = [], databases = [],
                             onClick={() => deleteSkillId && deleteSkill(deleteSkillId)}
                         >
                             Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={deleteCertificationId !== null} onOpenChange={() => setDeleteCertificationId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this certification record? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => deleteCertificationId && deleteCertification(deleteCertificationId)}
+                        >
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

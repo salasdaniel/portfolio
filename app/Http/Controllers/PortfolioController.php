@@ -49,6 +49,9 @@ class PortfolioController extends Controller
                 'experience' => function ($query) {
                     $query->orderBy('start_date', 'desc');
                 },
+                'certifications' => function ($query) {
+                    $query->orderBy('pin_order', 'asc');
+                },
                 'skills' => function ($query) {
                     $query->orderBy('sort_order');
                 },
@@ -135,11 +138,29 @@ class PortfolioController extends Controller
             ];
         });
 
+        // Transform certifications to match the required structure
+        $transformedCertifications = $user->certifications->map(function ($certification) {
+            return [
+                'id' => $certification->id,
+                'institution' => $certification->institution,
+                'description' => $certification->description,
+                'start_date' => $certification->start_date,
+                'end_date' => $certification->end_date,
+                'is_current' => $certification->is_current,
+                'field_of_study' => $certification->field_of_study,
+                'certification_url' => $certification->certification_url,
+                'pin_order' => $certification->pin_order,
+                'created_at' => $certification->created_at,
+                'updated_at' => $certification->updated_at,
+            ];
+        });
+
         return Inertia::render('Portfolio/Show', [
             'user' => $user,
             'projects' => $transformedProjects,
             'experience' => $transformedExperience,
             'education' => $transformedEducation,
+            'certifications' => $transformedCertifications,
             'username' => $decodedUsername
         ]);
     }

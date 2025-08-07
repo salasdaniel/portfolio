@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ExperienceController;
+use App\Http\Controllers\CertificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PortfolioController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('experiences/education/{id}', [ExperienceController::class, 'destroyEducation'])->name('education.destroy');
     Route::delete('experiences/work/{id}', [ExperienceController::class, 'destroyExperience'])->name('experience.destroy');
     Route::delete('experiences/skill/{id}', [ExperienceController::class, 'destroySkill'])->name('skill.destroy');
+    Route::post('experiences/certification', [CertificationController::class, 'store'])->name('certification.store');
+    Route::delete('certification/{id}', [CertificationController::class, 'destroy'])->name('certification.destroy');
 });
 
 require __DIR__.'/settings.php';

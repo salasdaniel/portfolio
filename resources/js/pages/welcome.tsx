@@ -47,7 +47,7 @@ export default function Welcome() {
     }, [searchQuery, searchUsers]);
 
     const selectUser = (user: User) => {
-        router.visit(`/${user.name}`);
+        router.visit(`/${user.username}`);
     };
 
     return (
