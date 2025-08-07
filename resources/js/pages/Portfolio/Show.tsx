@@ -143,6 +143,7 @@ export default function Show({ user, projects, experience, education, certificat
     const [activeSection, setActiveSection] = useState('about');
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Filter states
     const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
@@ -183,7 +184,10 @@ export default function Show({ user, projects, experience, education, certificat
                     'X-CSRF-TOKEN': csrfToken || '',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify(contactForm)
+                body: JSON.stringify({
+                    ...contactForm,
+                    username: user.username
+                })
             });
 
             const data = await response.json();
@@ -326,9 +330,143 @@ export default function Show({ user, projects, experience, education, certificat
                 }
                 `
             }} />
+            
+            {/* Mobile Header */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 p-4"
+                style={{
+                    backgroundColor: '#2c2c2c',
+                    background: 'linear-gradient(145deg, #2c2c2c 0%, #252525 50%, #2a2a2a 100%)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-14 h-14 rounded-full overflow-hidden">
+                            {user.profile_image ? (
+                                <img
+                                    src={`/storage/${user.profile_image}`}
+                                    alt={user.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
+                                    <span className="text-xl font-bold" style={{ color: '#121212' }}>
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold" style={{ color: '#ffffff' }}>
+                                {user.name}
+                            </h1>
+                            <p className="text-sm" style={{ color: '#cccccc' }}>
+                                {user.username}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 rounded-lg transition-all duration-300"
+                        style={{ backgroundColor: '#1a1a1a' }}
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="#ffffff" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+                
+                {/* Mobile Dropdown Menu */}
+                {isMobileMenuOpen && (
+                    <div className="absolute top-full left-0 right-0  p-4 rounded-b-lg"
+                        style={{
+                            backgroundColor: '#2c2c2c',
+                            background: 'linear-gradient(145deg, #2c2c2c 0%, #252525 50%, #2a2a2a 100%)',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+                        }}>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => {
+                                    setActiveSection('about');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
+                                    activeSection === 'about' ? 'border-l-4' : 'hover:opacity-80'
+                                }`}
+                                style={{
+                                    borderColor: activeSection === 'about' ? '#1db954ff' : 'transparent',
+                                    backgroundColor: activeSection === 'about' ? '#1a1a1a' : 'transparent',
+                                    color: activeSection === 'about' ? '#ffffff' : '#888888'
+                                }}
+                            >
+                                About
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveSection('projects');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
+                                    activeSection === 'projects' ? 'border-l-4' : 'hover:opacity-80'
+                                }`}
+                                style={{
+                                    borderColor: activeSection === 'projects' ? '#1db954ff' : 'transparent',
+                                    backgroundColor: activeSection === 'projects' ? '#1a1a1a' : 'transparent',
+                                    color: activeSection === 'projects' ? '#ffffff' : '#888888'
+                                }}
+                            >
+                                Projects
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveSection('resume');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
+                                    activeSection === 'resume' ? 'border-l-4' : 'hover:opacity-80'
+                                }`}
+                                style={{
+                                    borderColor: activeSection === 'resume' ? '#1db954ff' : 'transparent',
+                                    backgroundColor: activeSection === 'resume' ? '#1a1a1a' : 'transparent',
+                                    color: activeSection === 'resume' ? '#ffffff' : '#888888'
+                                }}
+                            >
+                                Resume
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setActiveSection('contact');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
+                                    activeSection === 'contact' ? 'border-l-4' : 'hover:opacity-80'
+                                }`}
+                                style={{
+                                    borderColor: activeSection === 'contact' ? '#1db954ff' : 'transparent',
+                                    backgroundColor: activeSection === 'contact' ? '#1a1a1a' : 'transparent',
+                                    color: activeSection === 'contact' ? '#ffffff' : '#888888'
+                                }}
+                            >
+                                Contact
+                            </button>
+                            <button
+                                onClick={() => {
+                                    router.visit('/');
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className="w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 hover:opacity-80"
+                                style={{ color: '#888888' }}
+                            >
+                                Exit
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div className="flex">
-                {/* Left Sidebar - Profile Information */}
-                <div className="fixed top-0 left-0 w-80 h-screen p-8 flex flex-col items-center justify-center text-center"
+                {/* Left Sidebar - Profile Information - Desktop Only */}
+                <div className="hidden lg:flex fixed top-0 left-0 w-80 h-screen p-8 flex-col items-center justify-center text-center"
                     style={{
                         backgroundColor: '#2c2c2c',
                         background: 'linear-gradient(145deg, #2c2c2c 0%, #252525 50%, #2a2a2a 100%)',
@@ -473,15 +611,15 @@ export default function Show({ user, projects, experience, education, certificat
                 </div>
 
                 {/* Right Content Area */}
-                <div className="flex-1 ml-80 p-8 relative">
+                <div className="flex-1 lg:ml-80 p-4 lg:p-8 pt-20 lg:pt-8 relative">
                     {/* Subtle background pattern */}
                     <div className="absolute inset-0 opacity-5" style={{
                         backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0)',
                         backgroundSize: '20px 20px'
                     }}></div>
 
-                    {/* Navigation Tabs */}
-                    <div className=" relative z-10">
+                    {/* Navigation Tabs - Desktop Only */}
+                    <div className="hidden lg:block relative z-10 mt-4 lg:mt-0">
                         <div className="flex items-center justify-between">
                             <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
                                 {activeSection === 'about' ? 'About Me' :
@@ -546,55 +684,63 @@ export default function Show({ user, projects, experience, education, certificat
                                 <a onClick={() => router.visit('/')} className="py-4 px-2 font-medium hover:cursor-pointer text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                     Exit
                                 </a>
-
-                                
                             </nav>
                         </div>
+                    </div>
+
+                    {/* Mobile Section Title */}
+                    <div className="lg:hidden relative z-10 mt-8">
+                        <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
+                            {activeSection === 'about' ? 'About Me' :
+                                activeSection === 'projects' ? 'My Projects' :
+                                    activeSection === 'resume' ? 'Resume' :
+                                        activeSection === 'contact' ? 'Contact Me' : 'About Me'}
+                        </h2>
                     </div>
 
                     {/* Conditional Content Based on Active Section */}
                     {activeSection === 'about' ? (
                         <>
                             {/* About Me Section */}
-                            <div className="mb-12 relative z-10">
-                                <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
+                            <div className="mb-8 lg:mb-12 relative z-10">
+                                <div className="relative w-12 h-1 mb-4 lg:mb-6 rounded-full overflow-hidden">
                                     <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                                 </div>
 
                                 {user.description && (
-                                    <p className="text-lg leading-relaxed mb-8 transition-all duration-300 hover:text-gray-200" style={{ color: '#cccccc' }}>
+                                    <p className="text-base lg:text-lg leading-relaxed mb-6 lg:mb-8 transition-all duration-300 hover:text-gray-200" style={{ color: '#cccccc' }}>
                                         {user.description}
                                     </p>
                                 )}
                             </div>
 
                             {/* What I'm Doing Section */}
-                            <div className="mb-12">
-                                <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
+                            <div className="mb-8 lg:mb-12">
+                                <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: '#ffffff' }}>
                                     What I'm Doing
                                 </h2>
-                                <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
                                     <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                                     {user.skills && user.skills.length > 0 ? (
                                         user.skills.map((skill, index) => (
-                                            <div key={index} className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" >
+                                            <div key={index} className="flex items-start space-x-3 lg:space-x-4 p-4 lg:p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0" >
                                                     {skill.icon ? (
                                                         <div dangerouslySetInnerHTML={{ __html: skill.icon }} className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full [&>svg]:p-2" style={{ color: '#ffffff', fill: '#ffffff' }} />
                                                     ) : (
-                                                        <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                                        <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                                                         </svg>
                                                     )}
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-lg lg:text-xl font-semibold mb-1 lg:mb-2" style={{ color: '#ffffff' }}>
                                                         {skill.title}
                                                     </h3>
-                                                    <p style={{ color: '#cccccc' }}>
+                                                    <p className="text-sm lg:text-base" style={{ color: '#cccccc' }}>
                                                         {skill.description}
                                                     </p>
                                                 </div>
@@ -603,33 +749,33 @@ export default function Show({ user, projects, experience, education, certificat
                                     ) : (
                                         /* Default fallback cards if no skills data */
                                         <>
-                                            <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
-                                                    <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                            <div className="flex items-start space-x-3 lg:space-x-4 p-4 lg:p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1db954ff' }}>
+                                                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                         <path d="M17 2v2h3v16H4V4h3V2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2z" />
                                                         <path d="M9 2v2h6V2c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2z" />
                                                     </svg>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-lg lg:text-xl font-semibold mb-1 lg:mb-2" style={{ color: '#ffffff' }}>
                                                         Mobile Apps
                                                     </h3>
-                                                    <p style={{ color: '#cccccc' }}>
+                                                    <p className="text-sm lg:text-base" style={{ color: '#cccccc' }}>
                                                         Professional development of applications for Android and iOS.
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-start space-x-4 p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
-                                                    <svg className="w-6 h-6" fill="#ffffff" viewBox="0 0 24 24">
+                                            <div className="flex items-start space-x-3 lg:space-x-4 p-4 lg:p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
+                                                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#ffffff' }}>
+                                                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                         <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8h16v10z" />
                                                     </svg>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#ffffff' }}>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-lg lg:text-xl font-semibold mb-1 lg:mb-2" style={{ color: '#ffffff' }}>
                                                         Web Development
                                                     </h3>
-                                                    <p style={{ color: '#cccccc' }}>
+                                                    <p className="text-sm lg:text-base" style={{ color: '#cccccc' }}>
                                                         High-quality development of sites at the professional level.
                                                     </p>
                                                 </div>
@@ -641,89 +787,77 @@ export default function Show({ user, projects, experience, education, certificat
 
                             {/* Stack Section */}
                             {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
-                                <div className="mb-12">
-                                    <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
+                                <div className="mb-8 lg:mb-12">
+                                    <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: '#ffffff' }}>
                                         Stack
                                     </h2>
-                                    <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                    <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
                                         <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                                     </div>
 
-                                    {/* Technologies Carousel Container */}
-                                    <div className="relative rounded-2xl  flex justify-center" >
-                                        <div className="w-full">
-                                            <div className="flex gap-6 min-w-max ">
-                                                {/* Programming Languages */}
-                                                {user.programming_language_skills?.map((skill, index) => (
-                                                    <div key={`prog-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
-                                                        style={{
-                                                            backgroundColor: '#1a1a1a',
-
-                                                        }}>
-                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                            {skill.name}
-                                                        </span>
-
-                                                    </div>
-                                                ))}
-
-                                                {/* Frameworks */}
-                                                {user.framework_skills?.map((skill, index) => (
-                                                    <div key={`framework-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
-                                                        style={{
-                                                            backgroundColor: '#1a1a1a',
-
-                                                        }}>
-                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                            {skill.name}
-                                                        </span>
-
-                                                    </div>
-                                                ))}
-
-                                                {/* Databases */}
-                                                {user.database_skills?.map((skill, index) => (
-                                                    <div key={`db-${index}`} className="flex-shrink-0 w-28 h-28 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
-                                                        style={{
-                                                            backgroundColor: '#1a1a1a',
-
-                                                        }}>
-                                                        <span className="text-sm font-bold text-center" style={{ color: '#ffffff' }}>
-                                                            {skill.name}
-                                                        </span>
-
-                                                    </div>
-                                                ))}
+                                    {/* Technologies Container */}
+                                    <div className="flex flex-wrap gap-3 lg:gap-4 justify-center lg:justify-start">
+                                        {/* Programming Languages */}
+                                        {user.programming_language_skills?.map((skill, index) => (
+                                            <div key={`prog-${index}`} className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl lg:rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
+                                                style={{
+                                                    backgroundColor: '#1a1a1a',
+                                                }}>
+                                                <span className="text-xs lg:text-sm font-bold text-center px-1" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
                                             </div>
-                                        </div>
+                                        ))}
+
+                                        {/* Frameworks */}
+                                        {user.framework_skills?.map((skill, index) => (
+                                            <div key={`framework-${index}`} className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl lg:rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
+                                                style={{
+                                                    backgroundColor: '#1a1a1a',
+                                                }}>
+                                                <span className="text-xs lg:text-sm font-bold text-center px-1" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
+                                            </div>
+                                        ))}
+
+                                        {/* Databases */}
+                                        {user.database_skills?.map((skill, index) => (
+                                            <div key={`db-${index}`} className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl lg:rounded-2xl flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 group cursor-pointer"
+                                                style={{
+                                                    backgroundColor: '#1a1a1a',
+                                                }}>
+                                                <span className="text-xs lg:text-sm font-bold text-center px-1" style={{ color: '#ffffff' }}>
+                                                    {skill.name}
+                                                </span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
 
                             {/* Other Technologies Section */}
                             {user.other_technologies?.length && (
-                                <div className="mb-12">
-                                    <h2 className="text-3xl font-bold" style={{ color: '#ffffff' }}>
+                                <div className="mb-8 lg:mb-12">
+                                    <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: '#ffffff' }}>
                                         Other Technologies
                                     </h2>
-                                    <div className="relative w-12 h-1 mb-8 rounded-full overflow-hidden">
+                                    <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
                                         <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
                                     </div>
 
                                     {/* Technologies Tags */}
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex flex-wrap gap-2 lg:gap-3">
                                         {user.other_technologies.map((tech, index) => (
-                                            <div key={index} className="px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group"
+                                            <div key={index} className="px-3 py-3 lg:px-4 lg:py-4 rounded-xl lg:rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer group"
                                                 style={{
                                                     backgroundColor: '#2c2c2c',
-
-
                                                 }}>
-                                                <span className="text-sm font-medium" style={{ color: '#cccccc' }}>
+                                                <span className="text-xs lg:text-sm font-medium" style={{ color: '#cccccc' }}>
                                                     {tech.name}
                                                 </span>
                                                 {tech.level && (
-                                                    <span className="text-xs ml-2 opacity-70" style={{ color: '#cccccc' }}>
+                                                    <span className="text-xs ml-1 lg:ml-2 opacity-70" style={{ color: '#cccccc' }}>
                                                         {tech.level}
                                                     </span>
                                                 )}
@@ -1359,6 +1493,57 @@ export default function Show({ user, projects, experience, education, certificat
                             </div>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Mobile Footer */}
+            <div className="lg:hidden p-4"
+                style={{
+                    backgroundColor: '#2c2c2c',
+                    background: 'linear-gradient(145deg, #2c2c2c 0%, #252525 50%, #2a2a2a 100%)',
+                    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                <div className="flex items-center justify-between text-xs">
+                    <div className="flex flex-col space-y-1">
+                        {user.email && (
+                            <span style={{ color: '#ffffff' }}>{user.email}</span>
+                        )}
+                        {user.phone && (
+                            <span style={{ color: '#ffffff' }}>{user.phone}</span>
+                        )}
+                        {user.location && (
+                            <span style={{ color: '#ffffff' }}>{user.location}</span>
+                        )}
+                    </div>
+                    <div className="flex space-x-3">
+                        {user.github_url && (
+                            <a
+                                href={user.github_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                                style={{ backgroundColor: '#1a1a1a' }}
+                            >
+                                <svg className="w-4 h-4" fill="#ffffff" viewBox="0 0 24 24">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                                </svg>
+                            </a>
+                        )}
+                        {user.linkedin_url && (
+                            <a
+                                href={user.linkedin_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300"
+                                style={{ backgroundColor: '#1a1a1a' }}
+                            >
+                                <svg className="w-4 h-4" fill="#ffffff" viewBox="0 0 24 24">
+                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                </svg>
+                            </a>
+                        )}
+                    </div>
                 </div>
             </div>
 
