@@ -149,6 +149,64 @@ export default function Show({ user, projects, experience, education, certificat
     const [selectedFramework, setSelectedFramework] = useState<string>('all');
     const [selectedDatabase, setSelectedDatabase] = useState<string>('all');
 
+    // Contact form states
+    const [contactForm, setContactForm] = useState({
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState('');
+
+    // Contact form handlers
+    const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setContactForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleContactSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitMessage('');
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            const response = await fetch('/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(contactForm)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setSubmitMessage('Message sent successfully! Thank you for reaching out.');
+                setContactForm({
+                    name: '',
+                    email: '',
+                    subject: '',
+                    message: ''
+                });
+            } else {
+                setSubmitMessage(data.message || 'Failed to send message. Please try again.');
+            }
+        } catch (error) {
+            console.error('Contact form error:', error);
+            setSubmitMessage('Failed to send message. Please try again or contact me directly.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // Debug logs to see what data is being received
     // console.log('User data:', user);
     // console.log('Programming Languages:', user.programming_language_skills);
@@ -252,6 +310,19 @@ export default function Show({ user, projects, experience, education, certificat
                 }
                 .scroll-container::-webkit-scrollbar {
                     display: none;
+                }
+                
+                /* Prevent autocomplete styling */
+                input:-webkit-autofill,
+                input:-webkit-autofill:hover,
+                input:-webkit-autofill:focus,
+                textarea:-webkit-autofill,
+                textarea:-webkit-autofill:hover,
+                textarea:-webkit-autofill:focus {
+                    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+                    -webkit-text-fill-color: #ffffff !important;
+                    background-color: #1a1a1a !important;
+                    transition: background-color 5000s ease-in-out 0s;
                 }
                 `
             }} />
@@ -415,7 +486,8 @@ export default function Show({ user, projects, experience, education, certificat
                             <h2 className="text-3xl font-bold transition-all duration-300 hover:text-orange-400" style={{ color: '#ffffff' }}>
                                 {activeSection === 'about' ? 'About Me' :
                                     activeSection === 'projects' ? 'My Projects' :
-                                        activeSection === 'resume' ? 'Resume' : 'About Me'}
+                                        activeSection === 'resume' ? 'Resume' :
+                                            activeSection === 'contact' ? 'Contact Me' : 'About Me'}
                             </h2>
                             <nav className="flex space-x-8">
                                 <button
@@ -458,9 +530,19 @@ export default function Show({ user, projects, experience, education, certificat
                                     Resume
                                 </button>
 
-                                <a href="#contact" className="py-4 px-2 font-medium text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
+                                <button
+                                    onClick={() => setActiveSection('contact')}
+                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'contact'
+                                        ? 'border-b-2'
+                                        : 'hover:opacity-80 hover:text-orange-400'
+                                        }`}
+                                    style={{
+                                        borderColor: activeSection === 'contact' ? '#1db954ff' : 'transparent',
+                                        color: activeSection === 'contact' ? '#ffffff' : '#888888'
+                                    }}
+                                >
                                     Contact
-                                </a>
+                                </button>
                                 <a onClick={() => router.visit('/')} className="py-4 px-2 font-medium hover:cursor-pointer text-sm transition-all duration-300 hover:opacity-80 hover:text-orange-400 relative group" style={{ color: '#888888' }}>
                                     Exit
                                 </a>
@@ -910,6 +992,132 @@ export default function Show({ user, projects, experience, education, certificat
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    ) : activeSection === 'contact' ? (
+                        /* Contact Section */
+                        <div className="mb-12 relative z-10">
+                            <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
+                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                            </div>
+
+                            <div className="max-w-2xl mx-auto">
+                                <div className="mb-8 text-center">
+                                    <h3 className="text-3xl mb-4" style={{ color: '#ffffff' }}>Get In Touch</h3>
+                                    <p className="text-lg" style={{ color: '#cccccc' }}>
+                                        Have a question or want to work together? Feel free to reach out!
+                                    </p>
+                                </div>
+
+                                {/* Contact Form */}
+                                <form onSubmit={handleContactSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label htmlFor="name" className="block text-sm  mb-2" style={{ color: '#cccccc' }}>
+                                                Name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="name"
+                                                name="name"
+                                                value={contactForm.name}
+                                                onChange={handleContactChange}
+                                                required
+                                                className="w-full px-4 py-3 rounded-lg "
+                                                style={{
+                                                    backgroundColor: '#1a1a1a',
+                                                    color: '#ffffff'
+                                                }}
+                                                placeholder="Your name"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="email" className="block text-sm mb-2" style={{ color: '#cccccc' }}>
+                                                Email *
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="email"
+                                                name="email"
+                                                value={contactForm.email}
+                                                onChange={handleContactChange}
+                                                required
+                                                className="w-full px-4 py-3 rounded-lg "
+                                                style={{
+                                                    backgroundColor: '#1a1a1a',
+                                                    color: '#ffffff'
+                                                }}
+                                                placeholder="your.email@example.com"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="subject" className="block text-sm mb-2" style={{ color: '#cccccc' }}>
+                                            Subject *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="subject"
+                                            name="subject"
+                                            value={contactForm.subject}
+                                            onChange={handleContactChange}
+                                            required
+                                            className="w-full px-4 py-3 rounded-lg "
+                                            style={{
+                                                backgroundColor: '#1a1a1a',
+                                                color: '#ffffff'
+                                            }}
+                                            placeholder="What's this about?"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="message" className="block text-sm mb-2" style={{ color: '#cccccc' }}>
+                                            Message *
+                                        </label>
+                                        <textarea
+                                            id="message"
+                                            name="message"
+                                            rows={6}
+                                            value={contactForm.message}
+                                            onChange={handleContactChange}
+                                            required
+                                            className="w-full px-4 py-3 rounded-lg  resize-vertical"
+                                            style={{
+                                                backgroundColor: '#1a1a1a',
+                                                color: '#ffffff'
+                                            }}
+                                            placeholder="Tell me about your project or question..."
+                                        />
+                                    </div>
+
+                                    {submitMessage && (
+                                        <div className={`p-4 rounded-lg ${submitMessage.includes('success') ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                                            {submitMessage}
+                                        </div>
+                                    )}
+
+                                    <div className="text-center">
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="px-8 py-4 rounded-lg font-medium text-lg disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition-all duration-300 "
+                                            style={{
+                                                backgroundColor: '#1db954ff',
+                                                color: '#121212'
+                                            }}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <span>Sending...</span>
+                                                </>
+                                            ) : (
+                                                <span>Send Message</span>
+                                            )}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     ) : (
