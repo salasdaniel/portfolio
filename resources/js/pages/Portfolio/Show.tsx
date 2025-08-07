@@ -183,7 +183,10 @@ export default function Show({ user, projects, experience, education, certificat
                     'X-CSRF-TOKEN': csrfToken || '',
                     'Accept': 'application/json',
                 },
-                body: JSON.stringify(contactForm)
+                body: JSON.stringify({
+                    ...contactForm,
+                    username: user.username
+                })
             });
 
             const data = await response.json();
