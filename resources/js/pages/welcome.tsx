@@ -7,6 +7,7 @@ interface User {
     name: string;
     profession?: string;
     username: string;
+    theme_color: string;
 }
 
 export default function Welcome() {
@@ -101,7 +102,7 @@ export default function Welcome() {
                                     <button
                                         key={user.id}
                                         onClick={() => selectUser(user)}
-                                        className="w-full px-4 py-3 text-left transition-colors duration-200 border-b last:border-b-0 hover:opacity-80"
+                                        className="w-full px-4 py-3 text-left transition-colors duration-200  hover:opacity-80"
                                         style={{ 
                                             
                                             backgroundColor: 'transparent'
@@ -110,7 +111,7 @@ export default function Welcome() {
                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     >
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#1db954' }}>
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: user.theme_color }}>
                                                 <span className="font-bold text-sm" style={{ color: '#121212' }}>
                                                     {user.name.charAt(0).toUpperCase()}
                                                 </span>

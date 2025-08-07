@@ -26,7 +26,7 @@ class PortfolioController extends Controller
         $query = $request->input('q', '');
         
         $users = User::where('username', 'like', "%{$query}%")
-            ->select('id', 'name', 'profession', 'username')
+            ->select('id', 'name', 'profession', 'username','theme_color')
             ->limit(10)
             ->get();
 

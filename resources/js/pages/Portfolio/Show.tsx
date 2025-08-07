@@ -16,6 +16,7 @@ interface User {
     profile_image?: string;
     cv_file?: string;
     description?: string;
+    theme_color?: string;
     education?: Array<{
         degree?: string;
         institution?: string;
@@ -160,6 +161,9 @@ export default function Show({ user, projects, experience, education, certificat
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
 
+    console.log('Projects data:', user.theme_color);
+    
+
     // Contact form handlers
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -220,9 +224,9 @@ export default function Show({ user, projects, experience, education, certificat
     // console.log('Projects:', projects);
 
     // Debug specific project data
-    if (projects && projects.length > 0) {
-        console.log('Projects data:', projects);
-    }
+    // if (projects && projects.length > 0) {
+    //     console.log('Projects data:', projects);
+    // }
 
     // Get unique values for filters
     const getUniqueLanguages = () => {
@@ -349,7 +353,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#1db954ff' }}>
+                                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: user.theme_color }}>
                                     <span className="text-xl font-bold" style={{ color: '#121212' }}>
                                         {user.name.charAt(0).toUpperCase()}
                                     </span>
@@ -394,7 +398,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     activeSection === 'about' ? 'border-l-4' : 'hover:opacity-80'
                                 }`}
                                 style={{
-                                    borderColor: activeSection === 'about' ? '#1db954ff' : 'transparent',
+                                    borderColor: activeSection === 'about' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'about' ? '#1a1a1a' : 'transparent',
                                     color: activeSection === 'about' ? '#ffffff' : '#888888'
                                 }}
@@ -410,7 +414,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     activeSection === 'projects' ? 'border-l-4' : 'hover:opacity-80'
                                 }`}
                                 style={{
-                                    borderColor: activeSection === 'projects' ? '#1db954ff' : 'transparent',
+                                    borderColor: activeSection === 'projects' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'projects' ? '#1a1a1a' : 'transparent',
                                     color: activeSection === 'projects' ? '#ffffff' : '#888888'
                                 }}
@@ -426,7 +430,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     activeSection === 'resume' ? 'border-l-4' : 'hover:opacity-80'
                                 }`}
                                 style={{
-                                    borderColor: activeSection === 'resume' ? '#1db954ff' : 'transparent',
+                                    borderColor: activeSection === 'resume' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'resume' ? '#1a1a1a' : 'transparent',
                                     color: activeSection === 'resume' ? '#ffffff' : '#888888'
                                 }}
@@ -442,7 +446,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     activeSection === 'contact' ? 'border-l-4' : 'hover:opacity-80'
                                 }`}
                                 style={{
-                                    borderColor: activeSection === 'contact' ? '#1db954ff' : 'transparent',
+                                    borderColor: activeSection === 'contact' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'contact' ? '#1a1a1a' : 'transparent',
                                     color: activeSection === 'contact' ? '#ffffff' : '#888888'
                                 }}
@@ -514,9 +518,9 @@ export default function Show({ user, projects, experience, education, certificat
                         <div className="my-4">
                             <span className="px-4 py-2 rounded-2xl text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
                                 style={{
-                                    backgroundColor: '#1db954ff',
+                                    backgroundColor: user.theme_color,
                                     color: '#121212',
-                                    background: 'linear-gradient(135deg, #1db954 0%, #17a844 50%, #1db954 100%)',
+                                    background: user.theme_color,
                                     boxShadow: '0 4px 15px #66656526',
                                     border: '1px solid rgba(29, 185, 84, 0.5)'
                                 }}>
@@ -635,7 +639,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
-                                        borderColor: activeSection === 'about' ? '#1db954ff' : 'transparent',
+                                        borderColor: activeSection === 'about' ? user.theme_color : 'transparent',
                                         color: activeSection === 'about' ? '#ffffff' : '#888888'
                                     }}
                                 >
@@ -648,7 +652,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
-                                        borderColor: activeSection === 'projects' ? '#1db954ff' : 'transparent',
+                                        borderColor: activeSection === 'projects' ? user.theme_color : 'transparent',
                                         color: activeSection === 'projects' ? '#ffffff' : '#888888'
                                     }}
                                 >
@@ -661,7 +665,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
-                                        borderColor: activeSection === 'resume' ? '#1db954ff' : 'transparent',
+                                        borderColor: activeSection === 'resume' ? user.theme_color : 'transparent',
                                         color: activeSection === 'resume' ? '#ffffff' : '#888888'
                                     }}
                                 >
@@ -675,7 +679,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
                                     style={{
-                                        borderColor: activeSection === 'contact' ? '#1db954ff' : 'transparent',
+                                        borderColor: activeSection === 'contact' ? user.theme_color : 'transparent',
                                         color: activeSection === 'contact' ? '#ffffff' : '#888888'
                                     }}
                                 >
@@ -704,7 +708,7 @@ export default function Show({ user, projects, experience, education, certificat
                             {/* About Me Section */}
                             <div className="mb-8 lg:mb-12 relative z-10">
                                 <div className="relative w-12 h-1 mb-4 lg:mb-6 rounded-full overflow-hidden">
-                                    <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                    <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                                 </div>
 
                                 {user.description && (
@@ -720,7 +724,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     What I'm Doing
                                 </h2>
                                 <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
-                                    <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                    <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -750,7 +754,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         /* Default fallback cards if no skills data */
                                         <>
                                             <div className="flex items-start space-x-3 lg:space-x-4 p-4 lg:p-6 rounded-xl transition-all duration-300 hover:scale-105" style={{ backgroundColor: '#2c2c2c' }}>
-                                                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1db954ff' }}>
+                                                <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: user.theme_color }}>
                                                     <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="#ffffff" viewBox="0 0 24 24">
                                                         <path d="M17 2v2h3v16H4V4h3V2H5C3.9 2 3 2.9 3 4v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2h-2z" />
                                                         <path d="M9 2v2h6V2c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2z" />
@@ -792,7 +796,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         Stack
                                     </h2>
                                     <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
-                                        <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                        <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                                     </div>
 
                                     {/* Technologies Container */}
@@ -843,7 +847,7 @@ export default function Show({ user, projects, experience, education, certificat
                                         Other Technologies
                                     </h2>
                                     <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
-                                        <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                        <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                                     </div>
 
                                     {/* Technologies Tags */}
@@ -871,7 +875,7 @@ export default function Show({ user, projects, experience, education, certificat
                         /* Resume Section - Experience and Education Combined */
                         <div className="mb-12 relative z-10">
                             <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
-                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                             </div>
 
                             {/* Download CV Button */}
@@ -882,9 +886,9 @@ export default function Show({ user, projects, experience, education, certificat
                                         download
                                         className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-medium text-lg transition-all duration-300 hover:scale-105 "
                                         style={{
-                                            backgroundColor: '#1db954ff',
+                                            backgroundColor: user.theme_color,
                                             color: '#121212',
-                                            background: 'linear-gradient(135deg, #1db954 0%, #17a844 50%, #1db954 100%)',
+                                            background: user.theme_color ,
                                            
                                         }}
                                     >
@@ -923,7 +927,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                         {/* Timeline dot */}
                                                         <div
                                                             className="absolute left-2.5 w-3 h-3 rounded-full  border-gray-600"
-                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                            style={{ backgroundColor: index === 0 ? user.theme_color : '#888888' }}
                                                         ></div>
 
                                                         <div className="">
@@ -934,7 +938,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                                 {exp.company}
                                                             </h5>
                                                             <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
-                                                                <span style={{ color: '#1db954ff' }}>
+                                                                <span style={{ color: user.theme_color }}>
                                                                     {new Date(exp.start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} — {' '}
                                                                     {exp.is_current ? 'Present' : exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present'}
                                                                 </span>
@@ -953,7 +957,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                                         if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
                                                                             return (
                                                                                 <div key={lineIndex} className="flex items-start ">
-                                                                                    <span className="mr-2 mt-1" style={{ color: '#1db954ff' }}>●</span>
+                                                                                    <span className="mr-2 mt-1" style={{ color: user.theme_color }}>●</span>
                                                                                     <span className="text-sm leading-relaxed" style={{ color: '#cccccc' }}>
                                                                                         {line.replace(/^[•-]\s*/, '')}
                                                                                     </span>
@@ -1013,7 +1017,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                         {/* Timeline dot */}
                                                         <div
                                                             className="absolute left-2.5 w-3 h-3 rounded-full "
-                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                            style={{ backgroundColor: index === 0 ? user.theme_color : '#888888' }}
                                                         ></div>
 
                                                         <div className="">
@@ -1024,7 +1028,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                                 {cert.institution}
                                                             </h5>
                                                             <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
-                                                                <span style={{ color: '#1db954ff' }}>
+                                                                <span style={{ color: user.theme_color }}>
                                                                     {new Date(cert.start_date).toLocaleDateString('en-US', { year: 'numeric' })} — {' '}
                                                                     {cert.is_current ? 'Present' : cert.end_date ? new Date(cert.end_date).toLocaleDateString('en-US', { year: 'numeric' }) : 'Present'}
                                                                 </span>
@@ -1081,7 +1085,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                         {/* Timeline dot */}
                                                         <div
                                                             className="absolute left-2.5 w-3 h-3 rounded-full "
-                                                            style={{ backgroundColor: index === 0 ? '#1db954ff' : '#888888' }}
+                                                            style={{ backgroundColor: index === 0 ? user.theme_color : '#888888' }}
                                                         ></div>
 
                                                         <div className="">
@@ -1092,7 +1096,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                                 {edu.institution}
                                                             </h5>
                                                             <div className="flex flex-wrap items-center gap-4 text-sm" style={{ color: '#cccccc' }}>
-                                                                <span style={{ color: '#1db954ff' }}>
+                                                                <span style={{ color: user.theme_color }}>
                                                                     {new Date(edu.start_date).toLocaleDateString('en-US', { year: 'numeric' })} — {' '}
                                                                     {edu.is_current ? 'Present' : edu.end_date ? new Date(edu.end_date).toLocaleDateString('en-US', { year: 'numeric' }) : 'Present'}
                                                                 </span>
@@ -1132,7 +1136,7 @@ export default function Show({ user, projects, experience, education, certificat
                         /* Contact Section */
                         <div className="mb-12 relative z-10">
                             <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
-                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                             </div>
 
                             <div className="max-w-2xl mx-auto">
@@ -1238,7 +1242,7 @@ export default function Show({ user, projects, experience, education, certificat
                                             disabled={isSubmitting}
                                             className="px-8 py-4 rounded-lg font-medium text-lg disabled:opacity-50 hover:cursor-pointer hover:scale-105 transition-all duration-300 "
                                             style={{
-                                                backgroundColor: '#1db954ff',
+                                                backgroundColor: user.theme_color,
                                                 color: '#121212'
                                             }}
                                         >
@@ -1258,7 +1262,7 @@ export default function Show({ user, projects, experience, education, certificat
                         /* Projects Section */
                         <div className="mb-12 relative z-10">
                             <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
-                                <div className="absolute inset-0" style={{ backgroundColor: '#1db954ff' }}></div>
+                                <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
                             </div>
 
                             {/* Filters */}
@@ -1458,7 +1462,7 @@ export default function Show({ user, projects, experience, education, certificat
                                                            rel="noopener noreferrer"
                                                            className="flex-1 py-2 px-4 rounded-lg text-center text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
                                                            style={{ 
-                                                               backgroundColor: '#1db954ff', 
+                                                               backgroundColor: user.theme_color, 
                                                                color: '#121212' 
                                                            }}>
                                                             Live Demo
