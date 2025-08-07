@@ -68,7 +68,7 @@ export default function Welcome() {
                     </div>
 
                     {/* Search Input */}
-                    <div className="relative mb-8">
+                    <div className="relative mb-4">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg className="h-5 w-5" style={{ color: '#535353' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -93,50 +93,50 @@ export default function Welcome() {
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: '#1db954' }}></div>
                             </div>
                         )}
+
+                        {/* Dropdown Results */}
+                        {isOpen && users.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#212121'}}>
+                                {users.map((user) => (
+                                    <button
+                                        key={user.id}
+                                        onClick={() => selectUser(user)}
+                                        className="w-full px-4 py-3 text-left transition-colors duration-200 border-b last:border-b-0 hover:opacity-80"
+                                        style={{ 
+                                            
+                                            backgroundColor: 'transparent'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#535353'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#1db954' }}>
+                                                <span className="font-bold text-sm" style={{ color: '#121212' }}>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <div className="font-medium" style={{ color: '#ffffff' }}>{user.name}</div>
+                                                <div className="text-sm" style={{ color: '#cccccc' }}>@{user.username}</div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* No results */}
+                        {isOpen && users.length === 0 && searchQuery.length >= 2 && !isLoading && (
+                            <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#212121' }}>
+                                <div className="px-4 py-3 text-center" style={{ color: '#535353' }}>
+                                    No developers found
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Dropdown Results */}
-                    {isOpen && users.length > 0 && (
-                        <div className="absolute z-50 w-full max-w-md rounded-xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#212121'}}>
-                            {users.map((user) => (
-                                <button
-                                    key={user.id}
-                                    onClick={() => selectUser(user)}
-                                    className="w-full px-4 py-3 text-left transition-colors duration-200 border-b last:border-b-0 hover:opacity-80"
-                                    style={{ 
-                                        
-                                        backgroundColor: 'transparent'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#535353'}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#1db954' }}>
-                                            <span className="font-bold text-sm" style={{ color: '#121212' }}>
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div className="font-medium" style={{ color: '#b3b3b3' }}>{user.name}</div>
-                                            <div className="text-sm" style={{ color: '#535353' }}>@{user.username}</div>
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* No results */}
-                    {isOpen && users.length === 0 && searchQuery.length >= 2 && !isLoading && (
-                        <div className="absolute z-50 w-full max-w-md rounded-xl overflow-hidden shadow-2xl" style={{ backgroundColor: '#212121' }}>
-                            <div className="px-4 py-3 text-center" style={{ color: '#535353' }}>
-                                No developers found
-                            </div>
-                        </div>
-                    )}
-
                     {/* Auth Links */}
-                    <div className="flex gap-4 mt-8">
+                    <div className="flex gap-4 ">
                         <a 
                             href={route('register')} 
                             className="flex-1 text-center px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:opacity-90"
