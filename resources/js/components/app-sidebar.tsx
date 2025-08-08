@@ -46,7 +46,7 @@ export function AppSidebar() {
             icon: User,
         },
         {
-            title: 'Live Demo',
+            title: 'Preview',
             href: `/${user?.username || 'demo'}`,
             icon: Radio,
         },

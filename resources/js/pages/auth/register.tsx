@@ -113,6 +113,18 @@ export default function Register() {
                         Log in
                     </TextLink>
                 </div>
+
+                <div className="text-center text-sm text-muted-foreground">
+                    How to use?{' '}
+                    <a 
+                        href="/README.txt" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                    >
+                        Download README
+                    </a>
+                </div>
             </form>
         </AuthLayout>
     );
