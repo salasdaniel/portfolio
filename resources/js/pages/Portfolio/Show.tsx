@@ -522,7 +522,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     color: '#121212',
                                     background: user.theme_color,
                                     boxShadow: '0 4px 15px #66656526',
-                                    border: '1px solid rgba(29, 185, 84, 0.5)'
+                                  
                                 }}>
                                 {user.profession}
                             </span>

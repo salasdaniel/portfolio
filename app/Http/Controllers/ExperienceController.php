@@ -21,10 +21,10 @@ class ExperienceController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user()->load([
-            'education', 
-            'experience', 
+            'education',
+            'experience',
             'skills',
-            'certifications' => function($query) {
+            'certifications' => function ($query) {
                 $query->orderBy('pin_order', 'asc');
             },
             'programmingLanguageSkills',
@@ -32,7 +32,7 @@ class ExperienceController extends Controller
             'frameworkSkills',
             'otherTechnologies'
         ]);
-        
+
         return Inertia::render('Experiences/Index', [
             'user' => $user,
             'programmingLanguages' => ProgrammingLanguage::orderBy('name')->get(),
@@ -47,17 +47,32 @@ class ExperienceController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
-        
+
         // Handle CV upload
+        // dd($request->all());
         if ($request->hasFile('cv_file')) {
-            // Delete old CV if exists
-            if ($user->cv_file) {
-                Storage::disk('public')->delete($user->cv_file);
+            // Validate the file first
+            $request->validate([
+                'cv_file' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB max
+            ]);
+
+            try {
+                // Delete old CV if exists
+                if ($user->cv_file && Storage::disk('public')->exists($user->cv_file)) {
+                    Storage::disk('public')->delete($user->cv_file);
+                    Log::info('Old CV file deleted: ' . $user->cv_file);
+                }
+
+                // Store new CV file
+                $path = $request->file('cv_file')->store('cv-files', 'public');
+                $user->cv_file = $path;
+                $user->save();
+
+                Log::info('New CV file uploaded: ' . $path);
+            } catch (\Exception $e) {
+                Log::error('Error uploading CV file: ' . $e->getMessage());
+                return redirect()->route('experiences.index')->withErrors(['cv_file' => 'Error uploading CV file.']);
             }
-            
-            $path = $request->file('cv_file')->store('cv-files', 'public');
-            $user->cv_file = $path;
-            $user->save();
         }
 
         // Handle education and experience from JSON strings
@@ -67,7 +82,7 @@ class ExperienceController extends Controller
                 $this->updateEducation($user, $educationData);
             }
         }
-        
+
         if ($request->has('experience')) {
             $experienceData = json_decode($request->input('experience'), true);
             if ($experienceData) {
@@ -91,7 +106,7 @@ class ExperienceController extends Controller
     public function storeEducation(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $validated = $request->validate([
             'id' => ['nullable', 'integer'],
             'institution' => ['required', 'string', 'max:255'],
@@ -106,7 +121,7 @@ class ExperienceController extends Controller
 
         // Handle boolean value properly
         $validated['is_current'] = filter_var($validated['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        
+
         // Clean end_date if is_current is true
         if ($validated['is_current']) {
             $validated['end_date'] = null;
@@ -135,7 +150,7 @@ class ExperienceController extends Controller
     public function storeWork(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $validated = $request->validate([
             'id' => ['nullable', 'integer'],
             'position' => ['required', 'string', 'max:255'],
@@ -150,7 +165,7 @@ class ExperienceController extends Controller
 
         // Handle boolean value properly
         $validated['is_current'] = filter_var($validated['is_current'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        
+
         // Clean end_date if is_current is true
         if ($validated['is_current']) {
             $validated['end_date'] = null;
@@ -179,7 +194,7 @@ class ExperienceController extends Controller
     public function storeSkill(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $validated = $request->validate([
             'id' => ['nullable', 'integer'],
             'title' => ['required', 'string', 'max:255'],
@@ -204,12 +219,12 @@ class ExperienceController extends Controller
             'skill' => $skill
         ]);
     }
-    
+
     private function updateEducation($user, $educationData)
     {
         // Delete existing education records for this user
         $user->education()->delete();
-        
+
         // Create new education records
         foreach ($educationData as $index => $education) {
             $user->education()->create([
@@ -224,12 +239,12 @@ class ExperienceController extends Controller
             ]);
         }
     }
-    
+
     private function updateExperience($user, $experienceData)
     {
         // Delete existing experience records for this user
         $user->experience()->delete();
-        
+
         // Create new experience records
         foreach ($experienceData as $index => $experience) {
             $user->experience()->create([
@@ -249,7 +264,7 @@ class ExperienceController extends Controller
     {
         // Delete existing skills records for this user
         $user->skills()->delete();
-        
+
         // Create new skills records
         foreach ($skillsData as $index => $skill) {
             $user->skills()->create([
@@ -266,7 +281,7 @@ class ExperienceController extends Controller
         try {
             $education = $request->user()->education()->findOrFail($id);
             $education->delete();
-            
+
             return response()->json(['message' => 'Education record deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error deleting education record'], 500);
@@ -278,7 +293,7 @@ class ExperienceController extends Controller
         try {
             $experience = $request->user()->experience()->findOrFail($id);
             $experience->delete();
-            
+
             return response()->json(['message' => 'Experience record deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error deleting experience record'], 500);
@@ -290,7 +305,7 @@ class ExperienceController extends Controller
         try {
             $skill = $request->user()->skills()->findOrFail($id);
             $skill->delete();
-            
+
             return response()->json(['message' => 'Skill record deleted successfully']);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error deleting skill record'], 500);
@@ -303,13 +318,13 @@ class ExperienceController extends Controller
     public function storeTechnologies(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         // Parse JSON strings from FormData
         $programmingLanguages = $request->has('programming_languages') ? json_decode($request->input('programming_languages'), true) : [];
         $databases = $request->has('databases') ? json_decode($request->input('databases'), true) : [];
         $frameworks = $request->has('frameworks') ? json_decode($request->input('frameworks'), true) : [];
         $otherTechnologies = $request->has('other_technologies') ? json_decode($request->input('other_technologies'), true) : [];
-        
+
         // Log the parsed data for debugging
         Log::info('Parsed technologies data:', [
             'programming_languages' => $programmingLanguages,
@@ -317,7 +332,7 @@ class ExperienceController extends Controller
             'frameworks' => $frameworks,
             'other_technologies' => $otherTechnologies
         ]);
-        
+
         // Merge parsed data back into the request for validation
         $request->merge([
             'programming_languages' => $programmingLanguages,
@@ -325,7 +340,7 @@ class ExperienceController extends Controller
             'frameworks' => $frameworks,
             'other_technologies' => $otherTechnologies
         ]);
-        
+
         // Now validate the merged data
         $validated = $request->validate([
             'programming_languages' => ['nullable', 'array'],
@@ -360,7 +375,7 @@ class ExperienceController extends Controller
             if (isset($validated['other_technologies'])) {
                 // Delete existing other technologies
                 $user->otherTechnologies()->delete();
-                
+
                 // Create new ones
                 foreach ($validated['other_technologies'] as $index => $technology) {
                     $user->otherTechnologies()->create([
@@ -371,7 +386,7 @@ class ExperienceController extends Controller
             }
 
             $userWithTech = $user->load(['programmingLanguageSkills', 'databaseSkills', 'frameworkSkills', 'otherTechnologies']);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Technologies saved successfully!',
@@ -393,21 +408,41 @@ class ExperienceController extends Controller
     public function storeProfessionalInfo(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $validated = $request->validate([
             'profession' => ['nullable', 'string', 'max:255'],
             'linkedin_url' => ['nullable', 'url', 'max:255'],
             'github_url' => ['nullable', 'url', 'max:255'],
+            'cv_file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'], // 10MB max
         ]);
 
         try {
+            // Handle CV upload if present
+            if ($request->hasFile('cv_file')) {
+                // Delete old CV if exists
+                if ($user->cv_file && Storage::disk('public')->exists($user->cv_file)) {
+                    Storage::disk('public')->delete($user->cv_file);
+                    Log::info('Old CV file deleted: ' . $user->cv_file);
+                }
+
+                // Store new CV file
+                $path = $request->file('cv_file')->store('cv-files', 'public');
+                $validated['cv_file'] = $path;
+                
+                Log::info('New CV file uploaded: ' . $path);
+            } else {
+                // Remove cv_file from validated data if no file was uploaded
+                unset($validated['cv_file']);
+            }
+
             $user->update($validated);
 
             return response()->json([
                 'message' => 'Professional information saved successfully!',
-                'user' => $user
+                'user' => $user->fresh() // Refresh user data to get updated cv_file path
             ]);
         } catch (\Exception $e) {
+            Log::error('Error saving professional information: ' . $e->getMessage());
             return response()->json(['message' => 'Error saving professional information: ' . $e->getMessage()], 500);
         }
     }
