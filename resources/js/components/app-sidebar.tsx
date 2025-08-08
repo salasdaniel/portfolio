@@ -3,32 +3,9 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, User, Gem, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react'; // import variable from current page
+import { BookOpen, User, Gem, LayoutGrid, Radio } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Projects',
-        href: '/projects',
-        icon: Gem,
-    },
-    {
-        title: 'Experience',
-        href: '/experiences',
-        icon: BookOpen,
-    },
-    {
-        title: 'Profile',
-        href: '/settings/profile',
-        icon: User,
-    },
-];
 
 const footerNavItems: NavItem[] = [
     // {
@@ -44,6 +21,37 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props as any;
+    const user = auth?.user;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Projects',
+            href: '/projects',
+            icon: Gem,
+        },
+        {
+            title: 'Experience',
+            href: '/experiences',
+            icon: BookOpen,
+        },
+        {
+            title: 'Profile',
+            href: '/settings/profile',
+            icon: User,
+        },
+        {
+            title: 'Live Demo',
+            href: `/${user?.username || 'demo'}`,
+            icon: Radio,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
