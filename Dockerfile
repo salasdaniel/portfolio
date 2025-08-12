@@ -7,30 +7,22 @@ RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
     else npm i --no-audit --no-fund; fi
 COPY . .
-RUN  npm run build \
-# ---- Stage 1: Composer (vendor) ----
-FROM php:8.3-cli AS vendor
-ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
-RUN set -eux; apt-get update; apt-get install -y --no-install-recommends git unzip && rm -rf /var/lib/apt/lists/*
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-ansi --no-progress --no-scripts
-COPY . .
-RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
+RUN npm run build
 
-# ---- Stage 2: Runtime PHP + Apache + Certbot ----
+# ---- Stage 1: Runtime PHP + Apache + Certbot ----
 FROM php:8.3-apache
 ENV DEBIAN_FRONTEND=noninteractive
+ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
 
 # PHP extensiones + módulos Apache
 RUN set -eux; \
   apt-get update; \
   apt-get install -y --no-install-recommends \
-    libpq5 libpng16-16 libjpeg62-turbo libfreetype6 libzip4 unzip \
+    git unzip \
+    libpq5 libpng16-16 libjpeg62-turbo libfreetype6 libzip4 \
     $PHPIZE_DEPS libpq-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev; \
   docker-php-ext-configure gd --with-freetype --with-jpeg; \
-  docker-php-ext-install -j"$(nproc)" pdo pdo_pgsql pgsql gd zip opcache; \
+  docker-php-ext-install -j"$(nproc)" pdo pdo_pgsql pgsql gd zip opcache mbstring; \
   docker-php-ext-enable pdo_pgsql pgsql opcache; \
   a2enmod ssl headers rewrite mime; \
   apt-get purge -y --auto-remove $PHPIZE_DEPS libpq-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev; \
@@ -49,11 +41,22 @@ RUN a2dissite 000-default.conf || true && a2ensite vhost-http.conf
 
 # App
 WORKDIR /var/www/html
+
+# Composer binario
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Instalar dependencias PHP (vendor) dentro del contenedor
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-ansi --no-progress --no-scripts
+
+# Copiar código fuente
 COPY --chown=www-data:www-data . /var/www/html
-# vendor desde el stage Composer
-COPY composer install
-# build de React a public/build
+
+# Copiar build de React a public/build
 COPY --from=nodebuild --chown=www-data:www-data /app/public/build /var/www/html/public/build
+
+# Autoload optimizado
+RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
 
 # Permisos Laravel
 RUN set -eux; \
