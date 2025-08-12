@@ -4,14 +4,16 @@ services:
   db:
     image: postgres:14
     container_name: devfolio_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE:-app}
       POSTGRES_USER: ${DB_USERNAME:-app}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      TZ: America/Asuncion
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"   # expuesto opcionalmente
+      - "5432:5432" # opcional, exponer si necesitas conectarte desde fuera
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -23,8 +25,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: devfolio
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
@@ -33,7 +37,7 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: https://${APACHE_SERVER_NAME:-visitapp.noko.com.py}
-      # DB (ajusta si cambias el service name o credenciales)
+      # DB
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
@@ -43,14 +47,17 @@ services:
       # SSL / Certbot
       APACHE_SERVER_NAME: ${APACHE_SERVER_NAME:-visitapp.noko.com.py}
       LE_EMAIL: ${LE_EMAIL:-admin@visitapp.noko.com.py}
+      TZ: America/Asuncion
+      # (Opcional) si tu build de Vite necesita vars en runtime:
+      # VITE_API_URL: "https://${APACHE_SERVER_NAME:-visitapp.noko.com.py}/api"
     volumes:
-      # Tu carpeta docker con vhosts e init-ssl.sh
+      # vhosts e init-ssl.sh
       - ./docker:/docker:ro
-      # Certificados persistentes de Let's Encrypt
+      # Certificados Let's Encrypt persistentes
       - letsencrypt:/etc/letsencrypt
-      # (Opcional) persistir storage si quieres que sobreviva a rebuilds
+      # Persistencia de storage de Laravel
       - app_storage:/var/www/html/storage
-    command: [ "bash", "-lc", "chmod +x /docker/init-ssl.sh && /docker/init-ssl.sh" ]
+    command: ["bash", "-lc", "chmod +x /docker/init-ssl.sh && /docker/init-ssl.sh"]
 
 volumes:
   pgdata:
