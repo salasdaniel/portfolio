@@ -3,21 +3,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "https://devfolio.noko.com.py/api"  # ajusta si corresponde
+        VITE_APP_NAME: "DevFolio"
     image: devfolio:1.0.0
     container_name: devfolio_prod
     restart: always
     env_file: .env
     environment:
-      APACHE_SERVER_NAME: devfolio.noko.com.py    
-      LE_EMAIL: www.devfolio.noko.com.py         
+      APACHE_SERVER_NAME: devfolio.noko.com.py
+      LE_EMAIL: daniel@noko.com.py        # Debe ser un email válido si usas certbot
       APP_ENV: production
       APP_DEBUG: "false"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./certs:/etc/letsencrypt        
-      - ./.env:/var/www/html/.env:ro     
+      - ./certs:/etc/letsencrypt
+      - ./.env:/var/www/html/.env:ro
     depends_on:
       - db
 
