@@ -1,0 +1,26 @@
+# VCS / hosts
+.git
+.gitignore
+.dockerignore
+
+# Node
+node_modules
+*.log
+
+# Laravel
+storage/*.key
+vendor
+
+# Entornos
+.env
+.env.*
+*.local
+
+# Otros
+Dockerfile*
+docker-compose*.yml
+docker/
+db/*.sql
+tests
+tmp
+**/.DS_Store
