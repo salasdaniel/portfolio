@@ -51,7 +51,7 @@ RUN a2dissite 000-default.conf || true && a2ensite vhost-http.conf
 WORKDIR /var/www/html
 COPY --chown=www-data:www-data . /var/www/html
 # vendor desde el stage Composer
-COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
+COPY composer install
 # build de React a public/build
 COPY --from=nodebuild --chown=www-data:www-data /app/public/build /var/www/html/public/build
 
