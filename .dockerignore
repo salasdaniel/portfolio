@@ -16,11 +16,4 @@ vendor
 .env.*
 *.local
 
-# Otros
-Dockerfile*
-docker-compose*.yml
-docker/
-db/*.sql
-tests
-tmp
-**/.DS_Store
+
