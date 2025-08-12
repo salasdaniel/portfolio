@@ -2,26 +2,19 @@
 FROM node:20-alpine AS nodebuild
 WORKDIR /app
 
-# Copiar archivos de dependencias primero (mejor cache de Docker)
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+# Toolchain para node-gyp / binarios nativos
+RUN apk add --no-cache python3 make g++ libc6-compat
 
-# Instalar dependencias
+# Instalar deps del frontend según lock (mejor caché)
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
     else npm i --no-audit --no-fund; fi
 
-# Copiar código fuente
+# Copiar el resto del código y build
 COPY . .
-
-# Verificar que existan los scripts y archivos necesarios
-RUN ls -la && cat package.json | grep -A 10 '"scripts"'
-
-# Crear directorio public/build si no existe
-RUN mkdir -p public/build
-
-# Intentar el build con manejo de errores
-RUN npm run build || (echo "Build failed, checking logs..." && npm run dev --version && exit 1)
+RUN npm run build --verbose
 
 # ---- Stage 1: Runtime PHP + Apache + Certbot ----
 FROM php:8.3-apache
@@ -59,14 +52,14 @@ WORKDIR /var/www/html
 # Composer binario
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Instalar dependencias PHP (vendor) dentro del contenedor
+# Instalar vendor dentro del contenedor (mejor caché al separar)
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-ansi --no-progress --no-scripts
 
-# Copiar código fuente
+# Copiar código fuente (sin .env ni vendor)
 COPY --chown=www-data:www-data . /var/www/html
 
-# Copiar build de React a public/build (verificar que existe)
+# Copiar build de Vite al public/build
 COPY --from=nodebuild --chown=www-data:www-data /app/public/build /var/www/html/public/build
 
 # Autoload optimizado
@@ -80,7 +73,7 @@ RUN set -eux; \
   find storage -type f -exec chmod 664 {} \; ; \
   chmod -R 775 bootstrap/cache
 
-# Script de arranque (auto-SSL + migraciones/seed)
+# Script de arranque (SSL + migraciones/seed)
 COPY docker/init-ssl.sh /usr/local/bin/init-ssl.sh
 RUN chmod +x /usr/local/bin/init-ssl.sh
 
