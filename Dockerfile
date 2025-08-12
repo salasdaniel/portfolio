@@ -7,10 +7,7 @@ RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
     else npm i --no-audit --no-fund; fi
 COPY . .
-RUN if [ -f package.json ]; then \
-      if cat package.json | grep -qi "\"build\""; then npm run build; else echo "No build script, skipping"; fi; \
-    fi
-
+RUN  npm run build \
 # ---- Stage 1: Composer (vendor) ----
 FROM php:8.3-cli AS vendor
 ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_NO_INTERACTION=1
