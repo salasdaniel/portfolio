@@ -41,8 +41,8 @@ RUN set -eux; \
   apt-get install -y --no-install-recommends certbot python3-certbot-apache; \
   rm -rf /var/lib/apt/lists/*
 
-COPY docker/php-apache/vhost-http.conf /etc/apache2/sites-available/vhost-http.conf
-COPY docker/php-apache/vhost-ssl.conf  /etc/apache2/sites-available/vhost-ssl.conf
+COPY docker/vhost-http.conf /etc/apache2/sites-available/vhost-http.conf
+COPY docker/vhost-ssl.conf  /etc/apache2/sites-available/vhost-ssl.conf
 RUN a2dissite 000-default.conf || true && a2ensite vhost-http.conf
 
 # App
@@ -58,7 +58,7 @@ RUN set -eux; \
   find storage -type f -exec chmod 664 {} \; ; \
   chmod -R 775 bootstrap/cache
 
-COPY docker/php-apache/init-ssl.sh /usr/local/bin/init-ssl.sh
+COPY docker/init-ssl.sh /usr/local/bin/init-ssl.sh
 RUN chmod +x /usr/local/bin/init-ssl.sh
 
 CMD ["/usr/local/bin/init-ssl.sh"]
