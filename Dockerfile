@@ -1,105 +1,66 @@
-# ---- Stage 0: Node (build de React/Vite) ----
+# ---- Etapa 1: Dependencias PHP (Composer) ----
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --no-progress
+
+# ---- Etapa 2: Build Frontend (Node + Vite) ----
 FROM node:20-alpine AS nodebuild
 WORKDIR /app
-
-# Toolchain para node-gyp / binarios nativos + CA
-RUN apk add --no-cache python3 make g++ libc6-compat ca-certificates
-# Si usas sharp, descomenta:
-# RUN apk add --no-cache vips vips-dev
-
-# ===== Variables públicas para Vite (desde build args) =====
-# Ejemplo: --build-arg VITE_API_URL=https://devfolio.noko.com.py/api
-ARG VITE_API_URL
-ARG VITE_APP_NAME
-ENV VITE_API_URL=${VITE_API_URL}
-ENV VITE_APP_NAME=${VITE_APP_NAME}
-
-# Copiar manifiestos primero (mejor caché)
+# Herramientas para paquetes nativos (si algún paquete lo requiere)
+RUN apk add --no-cache python3 make g++ libc6-compat
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-
-# Instalar dependencias según lock
+# Instalar según tu lockfile
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    else npm i --no-audit --no-fund; fi
+    else npm install --no-audit --no-fund; fi
 
-# Copiar sólo lo necesario para el build de Vite
-COPY vite.config.* tsconfig*.json ./
-COPY resources ./resources
-COPY public ./public
+# Copiar el resto del código (incluye resources, vite.config.*, etc.)
+COPY . .
+# Build de producción (Vite)
+RUN npm run build
 
-# Build de producción (Vite deja artefactos en public/build)
-ENV NODE_ENV=production
-ENV NODE_OPTIONS=--max-old-space-size=2048
-RUN npm run build --verbose
+# ---- Etapa 3: Runtime PHP 8.2 + Apache ----
+FROM php:8.2-apache
 
+# Paquetes del sistema y extensiones PHP necesarias
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev libzip-dev unzip git certbot python3 \
+    && docker-php-ext-install pdo_pgsql zip \
+    && docker-php-ext-install opcache \
+    && apt-get install -y --no-install-recommends libsqlite3-dev \
+    && docker-php-ext-install pdo_sqlite \
+    && a2enmod rewrite headers ssl \
+    && rm -rf /var/lib/apt/lists/*
 
-# ---- Stage 1: Runtime PHP + Apache ----
-FROM php:8.3-apache
-ENV DEBIAN_FRONTEND=noninteractive \
-    COMPOSER_ALLOW_SUPERUSER=1 \
-    COMPOSER_NO_INTERACTION=1
-
-# PHP extensiones + módulos Apache
-RUN set -eux; \
-  apt-get update; \
-  apt-get install -y --no-install-recommends \
-    git unzip \
-    libpq5 libpng16-16 libjpeg62-turbo libfreetype6 libzip4 \
-    $PHPIZE_DEPS libpq-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev; \
-  docker-php-ext-configure gd --with-freetype --with-jpeg; \
-  docker-php-ext-install -j"$(nproc)" pdo pdo_pgsql pgsql gd zip opcache mbstring; \
-  docker-php-ext-enable pdo_pgsql pgsql opcache; \
-  a2enmod ssl headers rewrite mime; \
-  apt-get purge -y --auto-remove $PHPIZE_DEPS libpq-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev; \
-  rm -rf /var/lib/apt/lists/*
-
-# (Opcional) Certbot
-# RUN set -eux; apt-get update; apt-get install -y --no-install-recommends certbot python3-certbot-apache; rm -rf /var/lib/apt/lists/*
-
-# VHosts (asumiendo que ya existen estos archivos en tu repo)
-COPY docker/vhost-http.conf /etc/apache2/sites-available/vhost-http.conf
-COPY docker/vhost-ssl.conf  /etc/apache2/sites-available/vhost-ssl.conf
-RUN a2dissite 000-default.conf || true && a2ensite vhost-http.conf
+# Configurar Apache (ServerName por variable)
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf \
+    && sed -ri 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf || true
 
 WORKDIR /var/www/html
 
-# Composer binario
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Copia del código de la app
+COPY . .
 
-# Instalar vendor primero (mejor caché)
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-ansi --no-progress --no-scripts
+# Copiar vendor desde la etapa de Composer
+COPY --from=vendor /app/vendor ./vendor
 
-# Copiar backend Laravel (evita .env y vendor)
-COPY --chown=www-data:www-data app ./app
-COPY --chown=www-data:www-data bootstrap ./bootstrap
-COPY --chown=www-data:www-data config ./config
-COPY --chown=www-data:www-data database ./database
-COPY --chown=www-data:www-data routes ./routes
-COPY --chown=www-data:www-data artisan ./artisan
-# Si tienes vistas Blade o traducciones, cópialas (Laravel las necesita en runtime)
-COPY --chown=www-data:www-data resources/views ./resources/views
-COPY --chown=www-data:www-data resources/lang ./resources/lang
-# Entradas públicas mínimas (index/robots)
-COPY --chown=www-data:www-data public/index.php public/robots.txt ./public/
+# Copiar build de frontend desde la etapa Node (Vite default -> public/build)
+COPY --from=nodebuild /app/public/build ./public/build
+# (Si usas manifest, también:)
+# COPY --from=nodebuild /app/public/manifest.json ./public/manifest.json 2>/dev/null || true
 
-# Copiar build de Vite al public/build
-COPY --from=nodebuild --chown=www-data:www-data /app/public/build ./public/build
+# Ajustar permisos mínimos (Laravel)
+RUN chown -R www-data:www-data /var/www/html \
+    && mkdir -p storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Autoload optimizado
-RUN composer dump-autoload --no-dev --optimize --classmap-authoritative
+# Copia de vhosts (los tienes en ./docker)
+# Se habilitan luego desde el init-ssl.sh
+COPY docker/vhost-http.conf /etc/apache2/sites-available/vhost-http.conf
+COPY docker/vhost-ssl.conf  /etc/apache2/sites-available/vhost-ssl.conf
 
-# Permisos Laravel
-RUN set -eux; \
-  mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache; \
-  chown -R www-data:www-data storage bootstrap/cache; \
-  find storage -type d -exec chmod 775 {} \; ; \
-  find storage -type f -exec chmod 664 {} \; ; \
-  chmod -R 775 bootstrap/cache
-
-# Script de arranque (migraciones/SSL si lo usas)
-COPY docker/init-ssl.sh /usr/local/bin/init-ssl.sh
-RUN chmod +x /usr/local/bin/init-ssl.sh
-
-CMD ["/usr/local/bin/init-ssl.sh"]
+# Entrypoint: dejaremos que docker-compose monte ./docker y ejecute tu init-ssl.sh
+# El comando final lo maneja el script (apache en foreground)

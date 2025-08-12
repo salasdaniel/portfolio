@@ -1,40 +1,58 @@
+version: "3.9"
+
 services:
+  db:
+    image: postgres:14
+    container_name: devfolio_db
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-app}
+      POSTGRES_USER: ${DB_USERNAME:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"   # expuesto opcionalmente
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: "https://devfolio.noko.com.py/api"  # ajusta si corresponde
-        VITE_APP_NAME: "DevFolio"
-    image: devfolio:1.0.0
-    container_name: devfolio_prod
-    restart: always
-    env_file: .env
-    environment:
-      APACHE_SERVER_NAME: devfolio.noko.com.py
-      LE_EMAIL: daniel@noko.com.py        # Debe ser un email válido si usas certbot
-      APP_ENV: production
-      APP_DEBUG: "false"
+    container_name: devfolio
+    depends_on:
+      - db
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./certs:/etc/letsencrypt
-      - ./.env:/var/www/html/.env:ro
-    depends_on:
-      - db
-
-  db:
-    image: postgres:14
-    container_name: devfolio_pg
-    restart: always
-    env_file: .env
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-myapp}
-      POSTGRES_USER: ${DB_USERNAME:-app}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      # Laravel
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://${APACHE_SERVER_NAME:-visitapp.noko.com.py}
+      # DB (ajusta si cambias el service name o credenciales)
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-app}
+      DB_USERNAME: ${DB_USERNAME:-app}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      # SSL / Certbot
+      APACHE_SERVER_NAME: ${APACHE_SERVER_NAME:-visitapp.noko.com.py}
+      LE_EMAIL: ${LE_EMAIL:-admin@visitapp.noko.com.py}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      # Tu carpeta docker con vhosts e init-ssl.sh
+      - ./docker:/docker:ro
+      # Certificados persistentes de Let's Encrypt
+      - letsencrypt:/etc/letsencrypt
+      # (Opcional) persistir storage si quieres que sobreviva a rebuilds
+      - app_storage:/var/www/html/storage
+    command: [ "bash", "-lc", "chmod +x /docker/init-ssl.sh && /docker/init-ssl.sh" ]
 
 volumes:
-  db_data:
+  pgdata:
+  letsencrypt:
+  app_storage:
