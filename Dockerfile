@@ -1,13 +1,27 @@
 # ---- Stage 0: Node (build de React/Vite) ----
 FROM node:20-alpine AS nodebuild
 WORKDIR /app
+
+# Copiar archivos de dependencias primero (mejor cache de Docker)
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+
+# Instalar dependencias
 RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
     else npm i --no-audit --no-fund; fi
+
+# Copiar código fuente
 COPY . .
-RUN npm run build
+
+# Verificar que existan los scripts y archivos necesarios
+RUN ls -la && cat package.json | grep -A 10 '"scripts"'
+
+# Crear directorio public/build si no existe
+RUN mkdir -p public/build
+
+# Intentar el build con manejo de errores
+RUN npm run build || (echo "Build failed, checking logs..." && npm run dev --version && exit 1)
 
 # ---- Stage 1: Runtime PHP + Apache + Certbot ----
 FROM php:8.3-apache
@@ -52,7 +66,7 @@ RUN composer install --no-dev --prefer-dist --no-ansi --no-progress --no-scripts
 # Copiar código fuente
 COPY --chown=www-data:www-data . /var/www/html
 
-# Copiar build de React a public/build
+# Copiar build de React a public/build (verificar que existe)
 COPY --from=nodebuild --chown=www-data:www-data /app/public/build /var/www/html/public/build
 
 # Autoload optimizado
