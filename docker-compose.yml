@@ -50,6 +50,7 @@ services:
       TZ: America/Asuncion
       # (Opcional) si tu build de Vite necesita vars en runtime:
       # VITE_API_URL: "https://${APACHE_SERVER_NAME:-visitapp.noko.com.py}/api"
+      VITE_API_URL: "https://${APACHE_SERVER_NAME:-visitapp.noko.com.py}/api"
     volumes:
       # vhosts e init-ssl.sh
       - ./docker:/docker:ro
