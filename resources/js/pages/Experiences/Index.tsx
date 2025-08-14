@@ -470,13 +470,13 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             const updated = educationList.filter((_, i) => i !== index);
             setEducationList(updated);
             
-            setSuccess('Educación guardada exitosamente');
+            setSuccess('Success!');
             setTimeout(() => setSuccess(''), 3000);
         })
         .catch(error => {
             console.error('Error saving education:', error);
             setSavingEducation(null);
-            setError('Error al guardar el registro de educación. Por favor intenta de nuevo.');
+            setError('Error saving education, please try again.');
             setTimeout(() => setError(''), 5000);
         });
     };
@@ -520,13 +520,13 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             const updated = experienceList.filter((_, i) => i !== index);
             setExperienceList(updated);
             
-            setSuccess('Experiencia guardada exitosamente');
+            setSuccess('Success!');
             setTimeout(() => setSuccess(''), 3000);
         })
         .catch(error => {
             console.error('Error saving experience:', error);
             setSavingExperience(null);
-            setError('Error al guardar el registro de experiencia. Por favor intenta de nuevo.');
+            setError('Error saving experience, please try again.');
             setTimeout(() => setError(''), 5000);
         });
     };
@@ -548,7 +548,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
         if (!csrfToken) {
             console.error('CSRF token not found');
             setSavingSkill(null);
-            setError('Error: Token CSRF no encontrado. Por favor recarga la página.');
+            setError('Error: CSRF token not found');
             setTimeout(() => setError(''), 5000);
             return;
         }
@@ -581,7 +581,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             const updated = skillsList.filter((_, i) => i !== index);
             setSkillsList(updated);
             
-            setSuccess('Habilidad guardada exitosamente');
+            setSuccess('Success!');
             setTimeout(() => setSuccess(''), 3000);
         })
         .catch(error => {
@@ -590,7 +590,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             if (error.message.includes('CSRF')) {
                 setError(error.message);
             } else {
-                setError('Error al guardar el registro de habilidad. Por favor intenta de nuevo.');
+                setError('Error saving skill, please try again.');
             }
             setTimeout(() => setError(''), 5000);
         });
@@ -672,7 +672,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             },
         })
         .then(() => {
-            setSuccess('Cambios guardados exitosamente');
+            setSuccess('Success!');
             setTimeout(() => setSuccess(''), 3000);
             window.location.reload();
         })
@@ -692,15 +692,15 @@ export default function Index({ user, programmingLanguages = [], databases = [],
 
             if (response.ok) {
                 setSavedEducations(savedEducations.filter(edu => edu.id !== id));
-                setSuccess('Educación eliminada exitosamente');
+                setSuccess('Deleted successfully');
                 setTimeout(() => setSuccess(''), 3000);
             } else {
-                setError('Error al eliminar la educación');
+                setError('Error deleting education');
                 setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting education:', error);
-            setError('Error al eliminar la educación');
+            setError('Error deleting education');
             setTimeout(() => setError(''), 5000);
         } finally {
             setDeleteEducationId(null);
@@ -718,15 +718,15 @@ export default function Index({ user, programmingLanguages = [], databases = [],
 
             if (response.ok) {
                 setSavedExperiences(savedExperiences.filter(exp => exp.id !== id));
-                setSuccess('Experiencia eliminada exitosamente');
+                setSuccess('Deleted successfully');
                 setTimeout(() => setSuccess(''), 3000);
             } else {
-                setError('Error al eliminar la experiencia');
+                setError('Error deleting experience');
                 setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting experience:', error);
-            setError('Error al eliminar la experiencia');
+            setError('Error deleting experience');
             setTimeout(() => setError(''), 5000);
         } finally {
             setDeleteExperienceId(null);
@@ -744,15 +744,15 @@ export default function Index({ user, programmingLanguages = [], databases = [],
 
             if (response.ok) {
                 setSavedSkills(savedSkills.filter(skill => skill.id !== id));
-                setSuccess('Habilidad eliminada exitosamente');
+                setSuccess('Deleted successfully');
                 setTimeout(() => setSuccess(''), 3000);
             } else {
-                setError('Error al eliminar la habilidad');
+                setError('Error deleting skill');
                 setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error deleting skill:', error);
-            setError('Error al eliminar la habilidad');
+            setError('Error deleting skill');
             setTimeout(() => setError(''), 5000);
         } finally {
             setDeleteSkillId(null);
@@ -828,21 +828,21 @@ export default function Index({ user, programmingLanguages = [], databases = [],
                         setOtherTechnologies(data.other_technologies.map((tech: { name: string }) => tech.name));
                     }
                     
-                    setSuccess('Tecnologías guardadas exitosamente');
+                    setSuccess('Technologies saved successfully');
                     setTimeout(() => setSuccess(''), 3000);
                 } catch (parseError) {
                     console.error('JSON parse error:', parseError);
-                    setError(`Error al procesar respuesta del servidor`);
+                    setError(`Error parsing server response`);
                     setTimeout(() => setError(''), 5000);
                 }
             } else {
                 console.error('Server response:', responseText);
-                setError(`Error al guardar las tecnologías: ${response.status}`);
+                setError(`Error saving technologies: ${response.status}`);
                 setTimeout(() => setError(''), 5000);
             }
         } catch (error) {
             console.error('Error saving technologies:', error);
-            setError('Error de conexión al guardar las tecnologías');
+            setError('Error connecting to save technologies');
             setTimeout(() => setError(''), 5000);
         } finally {
             setSavingTechnologies(false);
@@ -871,16 +871,16 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             });
 
             if (response.ok) {
-                setSuccess('Información profesional guardada exitosamente');
+                setSuccess('Professional information saved successfully');
                 setTimeout(() => setSuccess(''), 3000);
                 // Reset CV file state after successful save
                 setCvFile(null);
             } else {
-                setError('Error al guardar la información profesional');
+                setError('Error saving professional information');
             }
         } catch (error) {
             console.error('Error saving professional info:', error);
-            setError('Error al guardar la información profesional');
+            setError('Error saving professional information');
         } finally {
             setSavingProfessionalInfo(false);
         }
@@ -1803,18 +1803,18 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             <AlertDialog open={deleteEducationId !== null} onOpenChange={() => setDeleteEducationId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription>
-                            ¿Estás seguro de que quieres eliminar este registro de educación? Esta acción no se puede deshacer.
+                            are you sure you want to delete this education record? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => deleteEducationId && deleteEducation(deleteEducationId)}
                         >
-                            Eliminar
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1823,18 +1823,18 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             <AlertDialog open={deleteExperienceId !== null} onOpenChange={() => setDeleteExperienceId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription>
-                            ¿Estás seguro de que quieres eliminar este registro de experiencia laboral? Esta acción no se puede deshacer.
+                            Are you sure you want to delete this work experience record? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => deleteExperienceId && deleteExperience(deleteExperienceId)}
                         >
-                            Eliminar
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1843,9 +1843,9 @@ export default function Index({ user, programmingLanguages = [], databases = [],
             <AlertDialog open={deleteSkillId !== null} onOpenChange={() => setDeleteSkillId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription>
-                            ¿Estás seguro de que quieres eliminar esta habilidad? Esta acción no se puede deshacer.
+                            Are you sure you want to delete this skill? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -1854,7 +1854,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => deleteSkillId && deleteSkill(deleteSkillId)}
                         >
-                            Eliminar
+                            Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
