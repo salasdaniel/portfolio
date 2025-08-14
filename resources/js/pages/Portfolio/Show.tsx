@@ -161,7 +161,7 @@ export default function Show({ user, projects, experience, education, certificat
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState('');
 
-    console.log('Projects data:', user.theme_color);
+    // console.log('Projects data:', user.theme_color);
     
 
     // Contact form handlers
