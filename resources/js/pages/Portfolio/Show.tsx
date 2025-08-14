@@ -721,7 +721,7 @@ export default function Show({ user, projects, experience, education, certificat
                             {/* What I'm Doing Section */}
                             <div className="mb-8 lg:mb-12">
                                 <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: '#ffffff' }}>
-                                    What I'm Doing
+                                    Who I am
                                 </h2>
                                 <div className="relative w-12 h-1 mb-6 lg:mb-8 rounded-full overflow-hidden">
                                     <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
