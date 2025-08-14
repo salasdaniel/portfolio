@@ -634,7 +634,7 @@ export default function Show({ user, projects, experience, education, certificat
                             <nav className="flex space-x-8">
                                 <button
                                     onClick={() => setActiveSection('about')}
-                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'about'
+                                    className={`py-4 px-2 hover:cursor-pointer font-medium text-sm relative group transition-all duration-300 ${activeSection === 'about'
                                         ? 'border-b-2'
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
@@ -647,7 +647,7 @@ export default function Show({ user, projects, experience, education, certificat
                                 </button>
                                 <button
                                     onClick={() => setActiveSection('projects')}
-                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'projects'
+                                    className={`py-4 px-2 hover:cursor-pointer font-medium text-sm relative group transition-all duration-300 ${activeSection === 'projects'
                                         ? 'border-b-2'
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
@@ -660,7 +660,7 @@ export default function Show({ user, projects, experience, education, certificat
                                 </button>
                                 <button
                                     onClick={() => setActiveSection('resume')}
-                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'resume'
+                                    className={`py-4 px-2  hover:cursor-pointer font-medium text-sm relative group transition-all duration-300 ${activeSection === 'resume'
                                         ? 'border-b-2'
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
@@ -674,7 +674,7 @@ export default function Show({ user, projects, experience, education, certificat
 
                                 <button
                                     onClick={() => setActiveSection('contact')}
-                                    className={`py-4 px-2 font-medium text-sm relative group transition-all duration-300 ${activeSection === 'contact'
+                                    className={`py-4 px-2 hover:cursor-pointer font-medium text-sm relative group transition-all duration-300 ${activeSection === 'contact'
                                         ? 'border-b-2'
                                         : 'hover:opacity-80 hover:text-orange-400'
                                         }`}
@@ -1556,7 +1556,7 @@ export default function Show({ user, projects, experience, education, certificat
                 <div className="fixed inset-0 flex items-center justify-center p-4 z-50"
                     onClick={closeProjectModal}
                     style={{ backgroundColor: 'rgba(0, 0, 0, 0.71)' }}>
-                    <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl"
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-auto  scrollbar-none rounded-2xl shadow-2xl"
                         style={{
                             backgroundColor: '#2c2c2c',
                             boxShadow: '0 25px 50px -12px rgba(255, 255, 255, 0.14), 0 0 0 1px rgba(255, 255, 255, 0)'
@@ -1606,7 +1606,7 @@ export default function Show({ user, projects, experience, education, certificat
                         </div>
 
                         {/* Card Content */}
-                        <div className="p-6 md:p-6">
+                        <div className="p-6 md:p-6 overflow-auto">
                             {/* Project Type and Title */}
                             <div className="mb-4">
                                 <div className="flex items-center justify-between ">
