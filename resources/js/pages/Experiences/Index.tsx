@@ -867,6 +867,7 @@ export default function Index({ user, programmingLanguages = [], databases = [],
                 body: formData,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                     credentials: 'same-origin'
                 },
             });
 
