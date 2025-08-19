@@ -162,7 +162,7 @@ export default function Show({ user, projects, experience, education, certificat
     const [submitMessage, setSubmitMessage] = useState('');
 
     // console.log('Projects data:', user.theme_color);
-    
+
 
     // Contact form handlers
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -180,7 +180,7 @@ export default function Show({ user, projects, experience, education, certificat
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-            
+
             const response = await fetch('/contact', {
                 method: 'POST',
                 headers: {
@@ -334,7 +334,7 @@ export default function Show({ user, projects, experience, education, certificat
                 }
                 `
             }} />
-            
+
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 p-4"
                 style={{
@@ -379,7 +379,7 @@ export default function Show({ user, projects, experience, education, certificat
                         </svg>
                     </button>
                 </div>
-                
+
                 {/* Mobile Dropdown Menu */}
                 {isMobileMenuOpen && (
                     <div className="absolute top-full left-0 right-0  p-4 rounded-b-lg"
@@ -394,9 +394,8 @@ export default function Show({ user, projects, experience, education, certificat
                                     setActiveSection('about');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
-                                    activeSection === 'about' ? 'border-l-4' : 'hover:opacity-80'
-                                }`}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${activeSection === 'about' ? 'border-l-4' : 'hover:opacity-80'
+                                    }`}
                                 style={{
                                     borderColor: activeSection === 'about' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'about' ? '#1a1a1a' : 'transparent',
@@ -410,9 +409,8 @@ export default function Show({ user, projects, experience, education, certificat
                                     setActiveSection('projects');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
-                                    activeSection === 'projects' ? 'border-l-4' : 'hover:opacity-80'
-                                }`}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${activeSection === 'projects' ? 'border-l-4' : 'hover:opacity-80'
+                                    }`}
                                 style={{
                                     borderColor: activeSection === 'projects' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'projects' ? '#1a1a1a' : 'transparent',
@@ -426,9 +424,8 @@ export default function Show({ user, projects, experience, education, certificat
                                     setActiveSection('resume');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
-                                    activeSection === 'resume' ? 'border-l-4' : 'hover:opacity-80'
-                                }`}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${activeSection === 'resume' ? 'border-l-4' : 'hover:opacity-80'
+                                    }`}
                                 style={{
                                     borderColor: activeSection === 'resume' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'resume' ? '#1a1a1a' : 'transparent',
@@ -442,9 +439,8 @@ export default function Show({ user, projects, experience, education, certificat
                                     setActiveSection('contact');
                                     setIsMobileMenuOpen(false);
                                 }}
-                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${
-                                    activeSection === 'contact' ? 'border-l-4' : 'hover:opacity-80'
-                                }`}
+                                className={`w-full text-left py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 ${activeSection === 'contact' ? 'border-l-4' : 'hover:opacity-80'
+                                    }`}
                                 style={{
                                     borderColor: activeSection === 'contact' ? user.theme_color : 'transparent',
                                     backgroundColor: activeSection === 'contact' ? '#1a1a1a' : 'transparent',
@@ -522,7 +518,7 @@ export default function Show({ user, projects, experience, education, certificat
                                     color: '#121212',
                                     background: user.theme_color,
                                     boxShadow: '0 4px 15px #66656526',
-                                  
+
                                 }}>
                                 {user.profession}
                             </span>
@@ -789,6 +785,94 @@ export default function Show({ user, projects, experience, education, certificat
                                 </div>
                             </div>
 
+                            {/* Projects in about me section */}
+                            <div className="mb-12 relative z-10">
+                                <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: '#ffffff' }}>
+                                        Top Projects
+                                </h2>
+                                <div className="relative w-12 h-1 mb-6 rounded-full overflow-hidden">
+                                    
+                                    <div className="absolute inset-0" style={{ backgroundColor: user.theme_color }}></div>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    {projects && projects.length > 0 ? (
+                                        projects.filter(project => project.is_pinned === true)
+                                            .sort((a, b) => (a.pin_order || 0) - (b.pin_order || 0))
+                                            .map((project) => (
+                                                <div key={project.id} className="bg-gray-800 rounded-xl overflow-hidden cursor-pointer group"
+                                                    style={{ backgroundColor: '#2c2c2c' }}
+                                                    onClick={() => openProjectModal(project)}>
+
+                                                    {/* Project Image */}
+                                                    <div className="w-full h-48 overflow-hidden relative">
+                                                        {project.image_url ? (
+                                                            <img
+                                                                src={project.image_url}
+                                                                alt={project.title}
+                                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                            />
+
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+                                                                <div className="absolute inset-0 bg-gradient-to-br from-green-400/20 to-blue-500/20 opacity-50"></div>
+                                                                <svg className="w-16 h-16 z-10" fill="#1db954ff" viewBox="0 0 24 24">
+                                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Hover Overlay */}
+                                                        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-70 transition-all duration-300 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto">
+                                                            <svg
+                                                                className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-8 h-8"
+                                                                fill="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                                                            </svg>
+                                                        </div>
+
+                                                        {/* Status Badge */}
+                                                        <div className="absolute top-4 right-4 z-10">
+                                                            <span className={`px-3 py-1 text-xs rounded-full font-medium bg-gray-500 text-white`}>
+                                                                {project.project_type}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Pin Badge */}
+
+                                                    </div>
+
+                                                    {/* Project Content */}
+                                                    <div className="px-6 py-1 pt-3 text-white">
+
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="text-xl font-bold transition-colors duration-300 group-hover:text-green-400 flex-1"
+                                                                style={{ color: '#ffffff' }}>
+                                                                {project.title}
+                                                            </h3>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            ))
+                                    ) : (
+                                        <div className="col-span-full text-center py-12">
+                                            <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#888888' }}>
+                                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                                            </svg>
+                                            <p className="text-lg font-medium mb-2" style={{ color: '#ffffff' }}>
+                                                No Projects Yet
+                                            </p>
+                                            <p style={{ color: '#888888' }}>
+                                                Projects will appear here once they are added to the portfolio.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             {/* Stack Section */}
                             {(user.programming_language_skills?.length || user.framework_skills?.length || user.database_skills?.length) && (
                                 <div className="mb-8 lg:mb-12">
@@ -840,6 +924,8 @@ export default function Show({ user, projects, experience, education, certificat
                                 </div>
                             )}
 
+
+
                             {/* Other Technologies Section */}
                             {user.other_technologies?.length && (
                                 <div className="mb-8 lg:mb-12">
@@ -888,11 +974,11 @@ export default function Show({ user, projects, experience, education, certificat
                                         style={{
                                             backgroundColor: user.theme_color,
                                             color: '#121212',
-                                            background: user.theme_color ,
-                                           
+                                            background: user.theme_color,
+
                                         }}
                                     >
-                                        
+
                                         <span className="transition-all duration-300 group-hover:tracking-wide">Download CV</span>
                                         <svg className="w-5 h-5 transition-transform duration-300 " fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12,16L16,12H13V4H11V12H8L12,16M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2Z" />
